@@ -2,103 +2,75 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LIGHT MODE */
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap');
+
+/* 1950s-60s SPACE AGE — warm cream surfaces, atomic teal accent, coral/salmon highlights */
 :root {
   --button-outline: rgba(0, 0, 0, 0.1);
   --badge-outline: rgba(0, 0, 0, 0.05);
   --opaque-button-border-intensity: -8;
   --elevate-1: rgba(0, 0, 0, 0.03);
   --elevate-2: rgba(0, 0, 0, 0.08);
-  --background: 0 0% 100%;
-  --foreground: 0 0% 9%;
-  --border: 0 0% 91%;
-  --card: 0 0% 98%;
-  --card-foreground: 0 0% 9%;
-  --card-border: 0 0% 94%;
-  --sidebar: 0 0% 96%;
-  --sidebar-foreground: 0 0% 9%;
-  --sidebar-border: 0 0% 92%;
-  --sidebar-primary: 221 83% 53%;
-  --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 0 0% 89%;
-  --sidebar-accent-foreground: 0 0% 9%;
-  --sidebar-ring: 221 83% 53%;
-  --popover: 0 0% 95%;
-  --popover-foreground: 0 0% 9%;
-  --popover-border: 0 0% 91%;
-  --primary: 221 83% 53%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 0 0% 92%;
-  --secondary-foreground: 0 0% 9%;
-  --muted: 0 0% 93%;
-  --muted-foreground: 0 0% 40%;
-  --accent: 220 14% 92%;
-  --accent-foreground: 0 0% 9%;
-  --destructive: 0 84% 42%;
-  --destructive-foreground: 0 0% 98%;
-  --input: 0 0% 75%;
-  --ring: 221 83% 53%;
-  --chart-1: 221 83% 45%;
-  --chart-2: 262 83% 48%;
-  --chart-3: 173 58% 39%;
-  --chart-4: 43 74% 49%;
-  --chart-5: 27 87% 55%;
-  --font-sans: Open Sans, sans-serif;
+  /* Warm cream backgrounds — Googie architecture vibes */
+  --background: 42 40% 96%;
+  --foreground: 220 25% 12%;
+  --border: 38 18% 84%;
+  --card: 40 35% 94%;
+  --card-foreground: 220 25% 12%;
+  --card-border: 38 20% 86%;
+  --sidebar: 40 30% 92%;
+  --sidebar-foreground: 220 25% 12%;
+  --sidebar-border: 38 18% 84%;
+  --sidebar-primary: 174 65% 35%;
+  --sidebar-primary-foreground: 42 40% 96%;
+  --sidebar-accent: 38 25% 86%;
+  --sidebar-accent-foreground: 220 25% 12%;
+  --sidebar-ring: 174 65% 35%;
+  --popover: 40 30% 93%;
+  --popover-foreground: 220 25% 12%;
+  --popover-border: 38 18% 84%;
+  /* Atomic Teal primary */
+  --primary: 174 65% 35%;
+  --primary-foreground: 42 40% 96%;
+  /* Warm muted tones */
+  --secondary: 38 20% 88%;
+  --secondary-foreground: 220 25% 12%;
+  --muted: 38 15% 90%;
+  --muted-foreground: 220 10% 45%;
+  --accent: 12 55% 55%;
+  --accent-foreground: 42 40% 96%;
+  --destructive: 0 65% 48%;
+  --destructive-foreground: 42 40% 96%;
+  --input: 38 12% 72%;
+  --ring: 174 65% 35%;
+  --chart-1: 174 65% 35%;
+  --chart-2: 12 55% 55%;
+  --chart-3: 45 70% 50%;
+  --chart-4: 200 50% 45%;
+  --chart-5: 340 45% 50%;
+  --font-sans: 'Space Grotesk', 'Clash Display', system-ui, sans-serif;
   --font-serif: Georgia, serif;
-  --font-mono: Menlo, monospace;
-  --radius: 0.5rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
-  --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
-  --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 1px 2px -1px hsl(0 0% 0% / 0);
-  --shadow: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 1px 2px -1px hsl(0 0% 0% / 0);
-  --shadow-md: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 2px 4px -1px hsl(0 0% 0% / 0);
-  --shadow-lg: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 4px 6px -1px hsl(0 0% 0% / 0);
-  --shadow-xl: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 8px 10px -1px hsl(0 0% 0% / 0);
-  --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0);
+  --font-mono: 'Space Mono', monospace;
+  --radius: 0.75rem;
+  --shadow-2xs: 0px 1px 2px hsl(38 30% 20% / 0.04);
+  --shadow-xs: 0px 1px 3px hsl(38 30% 20% / 0.06);
+  --shadow-sm: 0px 2px 4px hsl(38 30% 20% / 0.06), 0px 1px 2px hsl(38 30% 20% / 0.04);
+  --shadow: 0px 4px 8px hsl(38 30% 20% / 0.06), 0px 1px 3px hsl(38 30% 20% / 0.04);
+  --shadow-md: 0px 6px 12px hsl(38 30% 20% / 0.08), 0px 2px 4px hsl(38 30% 20% / 0.04);
+  --shadow-lg: 0px 12px 24px hsl(38 30% 20% / 0.1), 0px 4px 8px hsl(38 30% 20% / 0.04);
+  --shadow-xl: 0px 20px 40px hsl(38 30% 20% / 0.12), 0px 8px 16px hsl(38 30% 20% / 0.06);
+  --shadow-2xl: 0px 32px 64px hsl(38 30% 20% / 0.14);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
 
-  /* Fallback for older browsers */
   --sidebar-primary-border: hsl(var(--sidebar-primary));
-  --sidebar-primary-border: hsl(
-    from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
   --sidebar-accent-border: hsl(var(--sidebar-accent));
-  --sidebar-accent-border: hsl(
-    from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
   --primary-border: hsl(var(--primary));
-  --primary-border: hsl(
-    from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
   --secondary-border: hsl(var(--secondary));
-  --secondary-border: hsl(
-    from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
   --muted-border: hsl(var(--muted));
-  --muted-border: hsl(
-    from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
   --accent-border: hsl(var(--accent));
-  --accent-border: hsl(
-    from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
   --destructive-border: hsl(var(--destructive));
-  --destructive-border: hsl(
-    from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
 }
 
 .dark {
@@ -107,90 +79,58 @@
   --opaque-button-border-intensity: 9;
   --elevate-1: rgba(255, 255, 255, 0.04);
   --elevate-2: rgba(255, 255, 255, 0.09);
-  --background: 0 0% 7%;
-  --foreground: 0 0% 98%;
-  --border: 0 0% 16%;
-  --card: 0 0% 9%;
-  --card-foreground: 0 0% 98%;
-  --card-border: 0 0% 13%;
-  --sidebar: 0 0% 11%;
-  --sidebar-foreground: 0 0% 98%;
-  --sidebar-border: 0 0% 15%;
-  --sidebar-primary: 221 83% 53%;
-  --sidebar-primary-foreground: 0 0% 98%;
-  --sidebar-accent: 0 0% 16%;
-  --sidebar-accent-foreground: 0 0% 98%;
-  --sidebar-ring: 221 83% 53%;
-  --popover: 0 0% 13%;
-  --popover-foreground: 0 0% 98%;
-  --popover-border: 0 0% 17%;
-  --primary: 221 83% 53%;
-  --primary-foreground: 0 0% 98%;
-  --secondary: 0 0% 18%;
-  --secondary-foreground: 0 0% 98%;
-  --muted: 0 0% 19%;
-  --muted-foreground: 0 0% 65%;
-  --accent: 220 9% 17%;
-  --accent-foreground: 0 0% 98%;
-  --destructive: 0 84% 42%;
-  --destructive-foreground: 0 0% 98%;
-  --input: 0 0% 30%;
-  --ring: 221 83% 53%;
-  --chart-1: 221 83% 65%;
-  --chart-2: 262 83% 68%;
-  --chart-3: 173 58% 55%;
-  --chart-4: 43 74% 65%;
-  --chart-5: 27 87% 65%;
-  --shadow-2xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
-  --shadow-xs: 0px 2px 0px 0px hsl(0 0% 0% / 0);
-  --shadow-sm: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 1px 2px -1px hsl(0 0% 0% / 0);
-  --shadow: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 1px 2px -1px hsl(0 0% 0% / 0);
-  --shadow-md: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 2px 4px -1px hsl(0 0% 0% / 0);
-  --shadow-lg: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 4px 6px -1px hsl(0 0% 0% / 0);
-  --shadow-xl: 0px 2px 0px 0px hsl(0 0% 0% / 0), 0px 8px 10px -1px hsl(0 0% 0% / 0);
-  --shadow-2xl: 0px 2px 0px 0px hsl(0 0% 0% / 0);
+  /* Deep space navy backgrounds */
+  --background: 220 30% 8%;
+  --foreground: 42 20% 90%;
+  --border: 220 15% 18%;
+  --card: 220 25% 11%;
+  --card-foreground: 42 20% 90%;
+  --card-border: 220 15% 16%;
+  --sidebar: 220 25% 10%;
+  --sidebar-foreground: 42 20% 90%;
+  --sidebar-border: 220 15% 16%;
+  --sidebar-primary: 174 50% 48%;
+  --sidebar-primary-foreground: 220 30% 8%;
+  --sidebar-accent: 220 15% 18%;
+  --sidebar-accent-foreground: 42 20% 90%;
+  --sidebar-ring: 174 50% 48%;
+  --popover: 220 25% 12%;
+  --popover-foreground: 42 20% 90%;
+  --popover-border: 220 15% 18%;
+  /* Glowing teal for dark mode */
+  --primary: 174 50% 48%;
+  --primary-foreground: 220 30% 8%;
+  --secondary: 220 15% 18%;
+  --secondary-foreground: 42 20% 90%;
+  --muted: 220 12% 20%;
+  --muted-foreground: 42 10% 60%;
+  --accent: 12 50% 58%;
+  --accent-foreground: 220 30% 8%;
+  --destructive: 0 60% 52%;
+  --destructive-foreground: 42 40% 96%;
+  --input: 220 12% 28%;
+  --ring: 174 50% 48%;
+  --chart-1: 174 50% 55%;
+  --chart-2: 12 50% 60%;
+  --chart-3: 45 65% 55%;
+  --chart-4: 200 45% 55%;
+  --chart-5: 340 40% 58%;
+  --shadow-2xs: 0px 1px 2px hsl(0 0% 0% / 0.12);
+  --shadow-xs: 0px 1px 3px hsl(0 0% 0% / 0.16);
+  --shadow-sm: 0px 2px 4px hsl(0 0% 0% / 0.16), 0px 1px 2px hsl(0 0% 0% / 0.12);
+  --shadow: 0px 4px 8px hsl(0 0% 0% / 0.16), 0px 1px 3px hsl(0 0% 0% / 0.12);
+  --shadow-md: 0px 6px 12px hsl(0 0% 0% / 0.2), 0px 2px 4px hsl(0 0% 0% / 0.12);
+  --shadow-lg: 0px 12px 24px hsl(0 0% 0% / 0.24), 0px 4px 8px hsl(0 0% 0% / 0.12);
+  --shadow-xl: 0px 20px 40px hsl(0 0% 0% / 0.28), 0px 8px 16px hsl(0 0% 0% / 0.16);
+  --shadow-2xl: 0px 32px 64px hsl(0 0% 0% / 0.32);
 
-  /* Fallback for older browsers */
   --sidebar-primary-border: hsl(var(--sidebar-primary));
-  --sidebar-primary-border: hsl(
-    from hsl(var(--sidebar-primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
   --sidebar-accent-border: hsl(var(--sidebar-accent));
-  --sidebar-accent-border: hsl(
-    from hsl(var(--sidebar-accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
   --primary-border: hsl(var(--primary));
-  --primary-border: hsl(
-    from hsl(var(--primary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
   --secondary-border: hsl(var(--secondary));
-  --secondary-border: hsl(
-    from hsl(var(--secondary)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
   --muted-border: hsl(var(--muted));
-  --muted-border: hsl(
-    from hsl(var(--muted)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
   --accent-border: hsl(var(--accent));
-  --accent-border: hsl(
-    from hsl(var(--accent)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
-
-  /* Fallback for older browsers */
   --destructive-border: hsl(var(--destructive));
-  --destructive-border: hsl(
-    from hsl(var(--destructive)) h s calc(l + var(--opaque-button-border-intensity)) / alpha
-  );
 }
 
 @layer base {
@@ -203,76 +143,114 @@
   }
 }
 
-/**
- * Using the elevate system.
- * Automatic contrast adjustment.
- *
- * <element className="hover-elevate" />
- * <element className="active-elevate-2" />
- *
- * // Using the tailwind utility when a data attribute is "on"
- * <element className="toggle-elevate data-[state=on]:toggle-elevated" />
- * // Or manually controlling the toggle state
- * <element className="toggle-elevate toggle-elevated" />
- *
- * Elevation systems have to handle many states.
- * - not-hovered, vs. hovered vs. active  (three mutually exclusive states)
- * - toggled or not
- * - focused or not (this is not handled with these utilities)
- *
- * Even without handling focused or not, this is six possible combinations that
- * need to be distinguished from eachother visually.
- */
+/* Retro Space Age custom styles */
+@layer components {
+  .retro-title {
+    font-family: 'Clash Display', 'Space Grotesk', sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .retro-card {
+    @apply rounded-2xl border-2 border-border/60 bg-card p-6;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .retro-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--accent)), hsl(var(--chart-3)));
+  }
+
+  .starburst {
+    background: radial-gradient(circle at 50% 50%, hsl(var(--primary) / 0.08) 0%, transparent 70%);
+  }
+
+  .atomic-pattern {
+    background-image: 
+      radial-gradient(circle at 20% 30%, hsl(var(--primary) / 0.04) 1px, transparent 1px),
+      radial-gradient(circle at 70% 60%, hsl(var(--accent) / 0.04) 1px, transparent 1px),
+      radial-gradient(circle at 50% 80%, hsl(var(--chart-3) / 0.04) 1px, transparent 1px);
+    background-size: 80px 80px, 60px 60px, 100px 100px;
+  }
+
+  .world-card {
+    @apply relative overflow-hidden rounded-3xl border-2 p-8 transition-all duration-300 cursor-pointer;
+  }
+  .world-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+  }
+
+  /* Animations */
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-12px); }
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  @keyframes orbit {
+    from { transform: rotate(0deg) translateX(40px) rotate(0deg); }
+    to { transform: rotate(360deg) translateX(40px) rotate(-360deg); }
+  }
+
+  .animate-float {
+    animation: float 4s ease-in-out infinite;
+  }
+
+  .animate-twinkle {
+    animation: twinkle 3s ease-in-out infinite;
+  }
+
+  .animate-orbit {
+    animation: orbit 8s linear infinite;
+  }
+}
+
+/* Elevation system utilities */
 @layer utilities {
-  /* Hide ugly search cancel button in Chrome until we can style it properly */
   input[type='search']::-webkit-search-cancel-button {
     @apply hidden;
   }
 
-  /* Placeholder styling for contentEditable div */
   [contenteditable][data-placeholder]:empty::before {
     content: attr(data-placeholder);
     color: hsl(var(--muted-foreground));
     pointer-events: none;
   }
 
-  /* .no-default-hover-elevate/no-default-active-elevate is an escape hatch so consumers of
-   * buttons/badges can remove the automatic brightness adjustment on interactions
-   * and program their own. */
-  .no-default-hover-elevate {
-  }
+  .no-default-hover-elevate {}
+  .no-default-active-elevate {}
 
-  .no-default-active-elevate {
-  }
-
-  /**
-   * Toggleable backgrounds go behind the content. Hoverable/active goes on top.
-   * This way they can stack/compound. Both will overlap the parent's borders!
-   * So borders will be automatically adjusted both on toggle, and hover/active,
-   * and they will be compounded.
-   */
   .toggle-elevate::before,
   .toggle-elevate-2::before {
     content: '';
     pointer-events: none;
     position: absolute;
     inset: 0px;
-    /*border-radius: inherit;   match rounded corners */
     border-radius: inherit;
     z-index: -1;
-    /* sits behind content but above backdrop */
   }
 
   .toggle-elevate.toggle-elevated::before {
     background-color: var(--elevate-2);
   }
 
-  /* If there's a 1px border, adjust the inset so that it covers that parent's border */
   .border.toggle-elevate::before {
     inset: -1px;
   }
 
-  /* Does not work on elements with overflow:hidden! */
   .hover-elevate:not(.no-default-hover-elevate),
   .active-elevate:not(.no-default-active-elevate),
   .hover-elevate-2:not(.no-default-hover-elevate),
@@ -289,10 +267,8 @@
     pointer-events: none;
     position: absolute;
     inset: 0px;
-    /*border-radius: inherit;   match rounded corners */
     border-radius: inherit;
     z-index: 999;
-    /* sits in front of content */
   }
 
   .hover-elevate:hover:not(.no-default-hover-elevate)::after,
@@ -305,12 +281,10 @@
     background-color: var(--elevate-2);
   }
 
-  /* If there's a 1px border, adjust the inset so that it covers that parent's border */
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after,
   .border.active-elevate:not(.no-active-interaction-elevate)::after,
   .border.hover-elevate-2:not(.no-hover-interaction-elevate)::after,
-  .border.active-elevate-2:not(.no-active-interaction-elevate)::after,
-  .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
+  .border.active-elevate-2:not(.no-active-interaction-elevate)::after {
     inset: -1px;
   }
 }
