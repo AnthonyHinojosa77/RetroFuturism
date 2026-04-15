@@ -1,23 +1,65 @@
-import { useState } from "react";
+import { useState, useRef, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { BackButton } from "@/components/BackButton";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { UtensilsCrossed, ChefHat, ThumbsUp, Sparkles, Star } from "lucide-react";
 import type { MenuItem } from "@shared/schema";
+
+// Hotspot definitions — positioned over the diner illustration
+const hotspots = [
+  {
+    id: "jukebox",
+    label: "Atomic Jukebox",
+    description: "Plays hits from across the galaxy. The tubes glow with every beat.",
+    top: "25%", left: "2%", width: "22%", height: "55%",
+    indicatorPos: { top: "40%", left: "50%" },
+  },
+  {
+    id: "menu-board",
+    label: "Today's Specials",
+    description: "Hand-painted by the robot chef every morning. The Nebula Noodle Soup glows faintly.",
+    top: "5%", left: "30%", width: "20%", height: "30%",
+    indicatorPos: { top: "50%", left: "50%" },
+    showsMenu: true,
+  },
+  {
+    id: "robot-waiter",
+    label: "Servo the Robot Waiter",
+    description: "Model T-800 hospitality unit. Never drops a plate. Tips not required (but appreciated).",
+    top: "20%", left: "42%", width: "18%", height: "60%",
+    indicatorPos: { top: "30%", left: "50%" },
+  },
+  {
+    id: "counter",
+    label: "Chrome Counter",
+    description: "Polished daily by Servo. Sit down, order something. Invent your own space dish while you're at it.",
+    top: "55%", left: "25%", width: "50%", height: "25%",
+    indicatorPos: { top: "40%", left: "50%" },
+    showsForm: true,
+  },
+  {
+    id: "window",
+    label: "Observation Window",
+    description: "Saturn rises over the horizon. The rings shimmer like a cosmic jukebox scratching vinyl in the void.",
+    top: "5%", left: "70%", width: "28%", height: "35%",
+    indicatorPos: { top: "50%", left: "50%" },
+  },
+];
 
 const houseMenu = [
   { name: "Nebula Noodle Soup", price: "3 Credits", desc: "Swirling broth infused with cosmic dust. Glows faintly." },
-  { name: "Saturn Ring Onion Rings", price: "2 Credits", desc: "Deep-fried in zero-gravity oil. Perfectly circular every time." },
-  { name: "Meteor Meatloaf", price: "4 Credits", desc: "Dense, savory, and impacts your plate with authority." },
+  { name: "Saturn Ring Onion Rings", price: "2 Credits", desc: "Deep-fried in zero-gravity oil. Perfectly circular." },
+  { name: "Meteor Meatloaf", price: "4 Credits", desc: "Dense, savory, impacts your plate with authority." },
   { name: "Lunar Lemonade", price: "1 Credit", desc: "Carbonated citrus from the Moon's hydroponic gardens." },
   { name: "Plutonium Pudding", price: "3 Credits", desc: "Glows green. Tastes like butterscotch. Totally safe." },
-  { name: "Galactic Grilled Cheese", price: "2 Credits", desc: "Cheese from six different planets. Melted perfectly." },
+  { name: "Galactic Grilled Cheese", price: "2 Credits", desc: "Cheese from six planets. Melted perfectly." },
 ];
 
 export default function Diner() {
+  const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
+  const [discoveredItems, setDiscoveredItems] = useState<Set<string>>(new Set());
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  // Form state for community dish
   const [name, setName] = useState("");
   const [dishName, setDishName] = useState("");
   const [description, setDescription] = useState("");
@@ -55,133 +97,183 @@ export default function Diner() {
     },
   });
 
+  const handleHotspotClick = useCallback((id: string) => {
+    setDiscoveredItems(prev => new Set(prev).add(id));
+    setActiveHotspot(prev => prev === id ? null : id);
+  }, []);
+
+  const activeData = hotspots.find(h => h.id === activeHotspot);
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-[hsl(350,30%,18%)] to-[hsl(12,25%,14%)] text-white pb-12 pt-6 px-4">
-        <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage: 'radial-gradient(circle at 40% 50%, hsl(12, 55%, 55%, 0.4) 0%, transparent 50%), radial-gradient(circle at 80% 30%, hsl(340, 45%, 50%, 0.3) 0%, transparent 40%)',
-        }} />
-        <div className="max-w-4xl mx-auto relative z-10">
+    <div className="min-h-screen bg-[hsl(25,30%,12%)] paper-texture">
+      {/* Scene header */}
+      <div className="bg-[hsl(350,30%,14%)] border-b-4 border-[hsl(45,80%,45%)] px-4 py-3">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
           <BackButton />
-          <div className="flex items-center gap-4 mt-6 mb-3">
-            <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-sm">
-              <UtensilsCrossed className="w-8 h-8" />
-            </div>
-            <div>
-              <h1 className="retro-title text-2xl md:text-3xl tracking-wider">Astro Diner</h1>
-              <p className="text-white/60 text-sm tracking-widest uppercase">Orbital Dining & Refreshments</p>
-            </div>
+          <h1 className="pulp-title text-xl md:text-2xl text-[hsl(45,80%,55%)] tracking-wider">
+            Astro Diner
+          </h1>
+          <div className="visitor-ticker text-xs">
+            <span className="hidden md:inline">Discovered:</span> {discoveredItems.size}/{hotspots.length}
           </div>
-          <p className="text-white/70 text-sm max-w-lg mt-2">
-            Browse our menu. Or invent your own space-age dish and let others vote on it.
-          </p>
         </div>
       </div>
 
-      <main className="max-w-4xl mx-auto px-4 -mt-6 relative z-10 pb-16">
-        {/* House Menu */}
-        <section className="mb-10">
-          <h2 className="retro-title text-sm text-muted-foreground tracking-widest mb-4 flex items-center gap-2">
-            <Star className="w-4 h-4" /> House Specials
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {houseMenu.map((item) => (
+      {/* Scene illustration with hotspot overlays */}
+      <div className="max-w-5xl mx-auto px-4 pt-4">
+        <div className="scene-container relative" data-testid="scene-diner">
+          <img
+            src="./scenes/diner-scene.png"
+            alt="Inside the Astro Diner — chrome counter, robot waiter, jukebox, observation window"
+            className="w-full h-auto block"
+            onLoad={() => setImgLoaded(true)}
+            draggable={false}
+          />
+
+          {imgLoaded && hotspots.map((hs) => (
+            <button
+              key={hs.id}
+              className={`hotspot ${discoveredItems.has(hs.id) ? "border-[hsl(120,50%,45%)]/40" : ""} ${activeHotspot === hs.id ? "bg-[hsl(45,80%,55%)]/20 border-[hsl(45,80%,55%)]" : ""}`}
+              style={{
+                top: hs.top, left: hs.left,
+                width: hs.width, height: hs.height,
+              }}
+              onClick={() => handleHotspotClick(hs.id)}
+              data-testid={`hotspot-${hs.id}`}
+            >
               <div
-                key={item.name}
-                className="bg-card border border-border/40 rounded-xl p-4"
-              >
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <h3 className="retro-title text-xs text-foreground">{item.name}</h3>
-                </div>
-                <span className="text-xs font-bold text-accent">{item.price}</span>
-                <p className="text-xs text-muted-foreground leading-relaxed mt-1.5">{item.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
+                className="hotspot-indicator"
+                style={{ top: hs.indicatorPos.top, left: hs.indicatorPos.left, transform: "translate(-50%, -50%)" }}
+              />
+            </button>
+          ))}
+        </div>
 
-        {/* Submit Your Dish */}
-        <section className="mb-10">
-          <div className="retro-card">
-            <h2 className="retro-title text-sm text-foreground tracking-widest mb-1 flex items-center gap-2">
-              <ChefHat className="w-4 h-4 text-accent" /> Invent a Dish
-            </h2>
-            <p className="text-xs text-muted-foreground mb-4">Dream up a space-age creation for the community menu.</p>
-            <div className="flex flex-col gap-3">
-              <Input
-                placeholder="Your name (Chef, Space Cook, etc.)"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="bg-background/50"
-                data-testid="input-dish-chef"
-              />
-              <Input
-                placeholder="Dish name (e.g., Supernova Spaghetti)"
-                value={dishName}
-                onChange={(e) => setDishName(e.target.value)}
-                className="bg-background/50"
-                data-testid="input-dish-name"
-              />
-              <Textarea
-                placeholder="Describe your creation..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={2}
-                className="bg-background/50 resize-none"
-                data-testid="input-dish-desc"
-              />
-              <Button
-                onClick={() => submitDish.mutate()}
-                disabled={!name.trim() || !dishName.trim() || !description.trim() || submitDish.isPending}
-                className="self-end bg-accent hover:bg-accent/90 text-white"
-                data-testid="button-submit-dish"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                {submitDish.isPending ? "Adding..." : "Add to Menu"}
-              </Button>
-            </div>
-          </div>
-        </section>
+        {/* Hotspot hint text */}
+        {!activeHotspot && (
+          <p className="text-center text-[hsl(38,20%,50%)] text-xs mt-3 marker-text animate-fade-in">
+            ★ Click the glowing spots to explore the diner ★
+          </p>
+        )}
+      </div>
 
-        {/* Community Menu */}
-        <section>
-          <h2 className="retro-title text-sm text-muted-foreground tracking-widest mb-4 flex items-center gap-2">
-            <Sparkles className="w-4 h-4" /> Community Menu ({communityItems.length})
-          </h2>
-          {communityItems.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <ChefHat className="w-10 h-10 mx-auto mb-3 opacity-40" />
-              <p className="text-sm">No community dishes yet. Be the first chef.</p>
+      {/* Discovery panel — opens when a hotspot is clicked */}
+      {activeData && (
+        <div className="max-w-5xl mx-auto px-4 mt-4 pb-8 animate-slide-up">
+          <div className="discovery-panel relative mx-auto" style={{ position: "relative", maxWidth: 600 }}>
+            <div className="discovery-panel-header">
+              <span>{activeData.label}</span>
+              <button
+                onClick={() => setActiveHotspot(null)}
+                className="text-[hsl(40,40%,95%)] hover:text-white text-lg leading-none"
+                data-testid="button-close-panel"
+              >
+                ✕
+              </button>
             </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {communityItems.map((item) => (
-                <div
-                  key={item.id}
-                  className="bg-card border border-border/40 rounded-xl p-4 flex items-start gap-4"
-                  data-testid={`card-menu-${item.id}`}
-                >
-                  <button
-                    onClick={() => voteMutation.mutate(item.id)}
-                    disabled={voteMutation.isPending}
-                    className="flex flex-col items-center gap-1 shrink-0 mt-1 group"
-                    data-testid={`button-vote-dish-${item.id}`}
-                  >
-                    <ThumbsUp className="w-5 h-5 text-muted-foreground group-hover:text-accent transition-colors" />
-                    <span className="text-xs font-bold text-foreground">{item.votes}</span>
-                  </button>
-                  <div className="min-w-0">
-                    <h3 className="retro-title text-sm text-foreground">{item.dishName}</h3>
-                    <p className="text-xs text-muted-foreground leading-relaxed mt-1">{item.description}</p>
-                    <p className="text-xs text-muted-foreground/60 mt-1.5">— Chef {item.visitorName}</p>
+            <div className="discovery-panel-body">
+              <p className="text-sm text-[hsl(25,40%,20%)] leading-relaxed mb-4">
+                {activeData.description}
+              </p>
+
+              {/* Menu Board hotspot reveals the house menu */}
+              {activeData.showsMenu && (
+                <div className="space-y-2">
+                  <h3 className="pulp-title text-sm text-[hsl(0,72%,48%)] tracking-wider">House Specials</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {houseMenu.map(item => (
+                      <div key={item.name} className="comic-panel p-3 bg-[hsl(38,35%,88%)]">
+                        <div className="flex justify-between items-start gap-1 mb-1">
+                          <span className="pulp-title text-xs text-[hsl(25,40%,15%)]">{item.name}</span>
+                        </div>
+                        <span className="text-xs font-bold text-[hsl(195,65%,38%)]">{item.price}</span>
+                        <p className="text-xs text-[hsl(25,20%,40%)] mt-1">{item.desc}</p>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* Counter hotspot reveals the dish creation form */}
+              {activeData.showsForm && (
+                <div className="space-y-3">
+                  <h3 className="pulp-title text-sm text-[hsl(0,72%,48%)] tracking-wider">Invent a Dish</h3>
+                  <p className="text-xs text-[hsl(25,15%,42%)]">Dream up a space-age creation for the community menu.</p>
+                  <input
+                    placeholder="Your name (Chef, Space Cook...)"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-[hsl(38,30%,85%)] border-2 border-[hsl(30,20%,68%)] rounded focus:border-[hsl(0,72%,48%)] focus:outline-none"
+                    data-testid="input-dish-chef"
+                  />
+                  <input
+                    placeholder="Dish name (e.g., Supernova Spaghetti)"
+                    value={dishName}
+                    onChange={(e) => setDishName(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-[hsl(38,30%,85%)] border-2 border-[hsl(30,20%,68%)] rounded focus:border-[hsl(0,72%,48%)] focus:outline-none"
+                    data-testid="input-dish-name"
+                  />
+                  <textarea
+                    placeholder="Describe your creation..."
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={2}
+                    className="w-full px-3 py-2 text-sm bg-[hsl(38,30%,85%)] border-2 border-[hsl(30,20%,68%)] rounded focus:border-[hsl(0,72%,48%)] focus:outline-none resize-none"
+                    data-testid="input-dish-desc"
+                  />
+                  <button
+                    onClick={() => submitDish.mutate()}
+                    disabled={!name.trim() || !dishName.trim() || !description.trim() || submitDish.isPending}
+                    className="retro-btn text-sm"
+                    data-testid="button-submit-dish"
+                  >
+                    {submitDish.isPending ? "Adding..." : "★ Add to Menu"}
+                  </button>
+
+                  {/* Community dishes */}
+                  {communityItems.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      <h4 className="pulp-title text-xs text-[hsl(195,65%,38%)] tracking-wider">
+                        Community Menu ({communityItems.length})
+                      </h4>
+                      {communityItems.map(item => (
+                        <div key={item.id} className="comic-panel p-3 bg-[hsl(38,35%,88%)] flex items-start gap-3" data-testid={`card-menu-${item.id}`}>
+                          <button
+                            onClick={() => voteMutation.mutate(item.id)}
+                            disabled={voteMutation.isPending}
+                            className="flex flex-col items-center gap-0.5 shrink-0 mt-0.5 hover:scale-110 transition-transform"
+                            data-testid={`button-vote-dish-${item.id}`}
+                          >
+                            <span className="text-lg">👍</span>
+                            <span className="text-xs font-bold text-[hsl(25,40%,15%)]">{item.votes}</span>
+                          </button>
+                          <div>
+                            <span className="pulp-title text-xs text-[hsl(25,40%,15%)]">{item.dishName}</span>
+                            <p className="text-xs text-[hsl(25,20%,40%)] mt-0.5">{item.description}</p>
+                            <p className="text-xs text-[hsl(25,15%,55%)] mt-1">— Chef {item.visitorName}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Generic hotspot — no special content, just the description */}
+              {!activeData.showsMenu && !activeData.showsForm && (
+                <div className="flex gap-2 mt-2">
+                  <div className="starburst-badge" style={{ width: 44, height: 44, fontSize: "0.5rem" }}>
+                    FOUND!
+                  </div>
+                  <p className="text-xs text-[hsl(25,15%,50%)] italic">
+                    You discovered the {activeData.label}. Keep exploring — there's more to find.
+                  </p>
+                </div>
+              )}
             </div>
-          )}
-        </section>
-      </main>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
