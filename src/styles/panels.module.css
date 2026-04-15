@@ -1,0 +1,42 @@
+.panel {
+  max-width: 560px;
+  margin: 1.5rem auto;
+  border: 4px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 6px 6px 0 var(--border);
+  overflow: hidden;
+  background: var(--cream);
+  color: var(--ink);
+  animation: panelSlideIn 0.2s ease-out forwards;
+}
+
+.header {
+  padding: 10px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Bangers', cursive;
+  font-size: 1.4rem;
+  letter-spacing: 0.05em;
+}
+
+.headerRed  { background: var(--red);  color: white; }
+.headerTeal { background: var(--teal); color: white; }
+.headerGold { background: var(--gold); color: var(--ink); }
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: inherit;
+  font-size: 1.4rem;
+  cursor: pointer;
+  line-height: 1;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+}
+.closeBtn:hover { opacity: 1; }
+
+.body {
+  padding: 1rem 1.25rem;
+  font-family: 'Space Grotesk', sans-serif;
+}

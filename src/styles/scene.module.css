@@ -1,0 +1,51 @@
+.sceneContainer {
+  width: 100%;
+  position: relative;
+  border: 6px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 0 40px rgba(0,0,0,0.5);
+}
+
+.hotspot {
+  position: absolute;
+  cursor: pointer;
+  border: 2px dashed transparent;
+  border-radius: 4px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+  z-index: 10;
+}
+
+.hotspot:hover {
+  background: rgba(218, 165, 32, 0.12);
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(218, 165, 32, 0.3);
+}
+
+.indicator {
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: var(--gold);
+  border-radius: 50%;
+  top: 50%;
+  left: 50%;
+  animation: pulseGlow 2s ease-in-out infinite;
+}
+
+.hint {
+  font-family: 'Permanent Marker', cursive;
+  color: var(--gold);
+  text-align: center;
+  margin-top: 0.75rem;
+  font-size: 1rem;
+}
+
+.counter {
+  font-family: 'Bangers', cursive;
+  color: var(--gold);
+  text-align: center;
+  font-size: 1.1rem;
+  letter-spacing: 0.08em;
+  margin-top: 0.25rem;
+}

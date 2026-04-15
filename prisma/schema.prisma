@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model VisitorLog {
+  id          String   @id @default(cuid())
+  visitorId   String
+  visitorName String
+  world       String
+  action      String
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model Postcard {
+  id          String   @id @default(cuid())
+  visitorName String
+  destination String
+  message     String
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model Prediction {
+  id          String   @id @default(cuid())
+  visitorName String
+  prediction  String
+  votes       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+model CommunityDish {
+  id          String   @id @default(cuid())
+  visitorName String
+  dishName    String
+  description String
+  votes       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
