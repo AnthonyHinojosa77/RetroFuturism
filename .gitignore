@@ -9,16 +9,17 @@ out/
 build/
 next-env.d.ts
 
+# macOS metadata
+.DS_Store
+
+# editor
+.vscode/
+
 # playwright
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
-
-# prisma
-prisma/dev.db
-prisma/dev.db-journal
-prisma/migrations/dev.db
 
 # misc
 .DS_Store

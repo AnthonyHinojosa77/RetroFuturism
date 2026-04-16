@@ -1,22 +1,16 @@
-.PHONY: dev build start migrate migrate-prod studio seed test test-ui lint clean setup
+.PHONY: dev build build-pages start test test-ui lint clean setup
 
 dev:
-	npx prisma generate && next dev
+	npx next dev
 
 build:
-	npx prisma generate && next build
+	npx next build
+
+build-pages:
+	NEXT_PUBLIC_BASE_PATH=/RetroFuturism npx next build
 
 start:
-	next start
-
-migrate:
-	npx prisma migrate dev
-
-migrate-prod:
-	npx prisma migrate deploy
-
-studio:
-	npx prisma studio
+	npx next start
 
 test:
 	npx playwright test
@@ -28,11 +22,8 @@ lint:
 	npx tsc --noEmit
 
 clean:
-	rm -rf .next node_modules/.cache
+	rm -rf .next out node_modules/.cache
 
-setup: ## First-time setup
+setup:
 	npm install
-	cp .env.example .env
-	npx prisma migrate dev --name init
-	npx prisma generate
 	npx playwright install

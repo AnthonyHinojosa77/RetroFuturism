@@ -10,6 +10,7 @@ import ComicCard from '@/components/ComicCard';
 import VisitorTicker from '@/components/VisitorTicker';
 import { VOYAGES_HOTSPOTS } from '@/lib/hotspots';
 import { getVisitorId, getVisitorName } from '@/lib/session';
+import { getPostcards, addPostcard, addVisitorLog } from '@/lib/storage';
 import type { HotspotId, Postcard } from '@/types';
 import sceneStyles from '@/styles/scene.module.css';
 import compStyles from '@/styles/components.module.css';
@@ -50,34 +51,21 @@ export default function VoyagesPage() {
     setVisitorName(getVisitorName());
   }, []);
 
-  async function refreshPostcards() {
-    try {
-      const res = await fetch('/api/postcards', { cache: 'no-store' });
-      if (res.ok) setPostcards(await res.json());
-    } catch {
-      /* ignore */
-    }
+  function refreshPostcards() {
+    setPostcards(getPostcards());
   }
 
   useEffect(() => {
     if (activeHotspot === 'ticketCounter') refreshPostcards();
   }, [activeHotspot]);
 
-  async function logVisit(action: string) {
-    try {
-      await fetch('/api/visitor-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          visitorId: getVisitorId(),
-          visitorName: getVisitorName(),
-          world: 'voyages',
-          action,
-        }),
-      });
-    } catch {
-      /* ignore */
-    }
+  function logVisit(action: string) {
+    addVisitorLog({
+      visitorId: getVisitorId(),
+      visitorName: getVisitorName(),
+      world: 'voyages',
+      action,
+    });
   }
 
   function handleHotspotClick(id: string) {
@@ -92,22 +80,16 @@ export default function VoyagesPage() {
     setTimeout(() => setSuccessMsg(null), 3000);
   }
 
-  async function submitPostcard(e: React.FormEvent) {
+  function submitPostcard(e: React.FormEvent) {
     e.preventDefault();
     if (!visitorName.trim() || !destination.trim() || !message.trim()) return;
     setSubmitting(true);
     try {
-      const res = await fetch('/api/postcards', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ visitorName, destination, message }),
-      });
-      if (res.ok) {
-        setMessage('');
-        handleSuccess();
-        refreshPostcards();
-        logVisit(`sent a postcard from ${destination}`);
-      }
+      addPostcard({ visitorName, destination, message });
+      setMessage('');
+      handleSuccess();
+      refreshPostcards();
+      logVisit(`sent a postcard from ${destination}`);
     } finally {
       setSubmitting(false);
     }

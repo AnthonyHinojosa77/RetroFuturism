@@ -10,6 +10,12 @@ import ComicCard from '@/components/ComicCard';
 import VisitorTicker from '@/components/VisitorTicker';
 import { EXPO_HOTSPOTS } from '@/lib/hotspots';
 import { getVisitorId, getVisitorName } from '@/lib/session';
+import {
+  getPredictions,
+  addPrediction,
+  incrementPredictionVote,
+  addVisitorLog,
+} from '@/lib/storage';
 import type { HotspotId, Prediction } from '@/types';
 import sceneStyles from '@/styles/scene.module.css';
 import compStyles from '@/styles/components.module.css';
@@ -55,34 +61,21 @@ export default function ExpoPage() {
     setVisitorName(getVisitorName());
   }, []);
 
-  async function refreshPredictions() {
-    try {
-      const res = await fetch('/api/predictions', { cache: 'no-store' });
-      if (res.ok) setPredictions(await res.json());
-    } catch {
-      /* ignore */
-    }
+  function refreshPredictions() {
+    setPredictions(getPredictions());
   }
 
   useEffect(() => {
     if (activeHotspot === 'timeCapsule') refreshPredictions();
   }, [activeHotspot]);
 
-  async function logVisit(action: string) {
-    try {
-      await fetch('/api/visitor-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          visitorId: getVisitorId(),
-          visitorName: getVisitorName(),
-          world: 'expo',
-          action,
-        }),
-      });
-    } catch {
-      /* ignore */
-    }
+  function logVisit(action: string) {
+    addVisitorLog({
+      visitorId: getVisitorId(),
+      visitorName: getVisitorName(),
+      world: 'expo',
+      action,
+    });
   }
 
   function handleHotspotClick(id: string) {
@@ -97,29 +90,23 @@ export default function ExpoPage() {
     setTimeout(() => setSuccessMsg(null), 3000);
   }
 
-  async function submitPrediction(e: React.FormEvent) {
+  function submitPrediction(e: React.FormEvent) {
     e.preventDefault();
     if (!visitorName.trim() || !predictionText.trim()) return;
     setSubmitting(true);
     try {
-      const res = await fetch('/api/predictions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ visitorName, prediction: predictionText }),
-      });
-      if (res.ok) {
-        setPredictionText('');
-        handleSuccess();
-        refreshPredictions();
-        logVisit('sealed a prediction');
-      }
+      addPrediction({ visitorName, prediction: predictionText });
+      setPredictionText('');
+      handleSuccess();
+      refreshPredictions();
+      logVisit('sealed a prediction');
     } finally {
       setSubmitting(false);
     }
   }
 
-  async function votePrediction(id: string) {
-    await fetch(`/api/predictions/${id}`, { method: 'PATCH' });
+  function votePrediction(id: string) {
+    incrementPredictionVote(id);
     refreshPredictions();
   }
 

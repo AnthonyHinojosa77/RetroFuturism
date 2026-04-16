@@ -3,29 +3,19 @@
 import { useEffect, useState } from 'react';
 import styles from '@/styles/components.module.css';
 import type { VisitorLog } from '@/types';
+import { getVisitorLogs } from '@/lib/storage';
 
 export default function VisitorTicker() {
   const [logs, setLogs] = useState<VisitorLog[]>([]);
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        const res = await fetch('/api/visitor-log', { cache: 'no-store' });
-        if (!res.ok) return;
-        const data = (await res.json()) as VisitorLog[];
-        if (!cancelled) setLogs(Array.isArray(data) ? data : []);
-      } catch {
-        /* ignore */
-      }
+    function load() {
+      setLogs(getVisitorLogs(5));
     }
     load();
     const id = setInterval(load, 5000);
-    return () => {
-      cancelled = true;
-      clearInterval(id);
-    };
+    return () => clearInterval(id);
   }, []);
 
   useEffect(() => {

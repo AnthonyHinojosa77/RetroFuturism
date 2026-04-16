@@ -10,6 +10,12 @@ import ComicCard from '@/components/ComicCard';
 import VisitorTicker from '@/components/VisitorTicker';
 import { DINER_HOTSPOTS } from '@/lib/hotspots';
 import { getVisitorId, getVisitorName } from '@/lib/session';
+import {
+  getCommunityDishes,
+  addCommunityDish,
+  incrementDishVote,
+  addVisitorLog,
+} from '@/lib/storage';
 import type { HotspotId, CommunityDish } from '@/types';
 import sceneStyles from '@/styles/scene.module.css';
 import compStyles from '@/styles/components.module.css';
@@ -52,34 +58,21 @@ export default function DinerPage() {
     setVisitorName(getVisitorName());
   }, []);
 
-  async function refreshDishes() {
-    try {
-      const res = await fetch('/api/community-dishes', { cache: 'no-store' });
-      if (res.ok) setDishes(await res.json());
-    } catch {
-      /* ignore */
-    }
+  function refreshDishes() {
+    setDishes(getCommunityDishes());
   }
 
   useEffect(() => {
     if (activeHotspot === 'counter') refreshDishes();
   }, [activeHotspot]);
 
-  async function logVisit(action: string) {
-    try {
-      await fetch('/api/visitor-log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          visitorId: getVisitorId(),
-          visitorName: getVisitorName(),
-          world: 'diner',
-          action,
-        }),
-      });
-    } catch {
-      /* ignore */
-    }
+  function logVisit(action: string) {
+    addVisitorLog({
+      visitorId: getVisitorId(),
+      visitorName: getVisitorName(),
+      world: 'diner',
+      action,
+    });
   }
 
   function handleHotspotClick(id: string) {
@@ -94,30 +87,24 @@ export default function DinerPage() {
     setTimeout(() => setSuccessMsg(null), 3000);
   }
 
-  async function submitDish(e: React.FormEvent) {
+  function submitDish(e: React.FormEvent) {
     e.preventDefault();
     if (!dishName.trim() || !dishDesc.trim() || !visitorName.trim()) return;
     setSubmitting(true);
     try {
-      const res = await fetch('/api/community-dishes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ visitorName, dishName, description: dishDesc }),
-      });
-      if (res.ok) {
-        setDishName('');
-        setDishDesc('');
-        handleSuccess();
-        refreshDishes();
-        logVisit(`invented dish "${dishName}"`);
-      }
+      addCommunityDish({ visitorName, dishName, description: dishDesc });
+      setDishName('');
+      setDishDesc('');
+      handleSuccess();
+      refreshDishes();
+      logVisit(`invented dish "${dishName}"`);
     } finally {
       setSubmitting(false);
     }
   }
 
-  async function voteDish(id: string) {
-    await fetch(`/api/community-dishes/${id}`, { method: 'PATCH' });
+  function voteDish(id: string) {
+    incrementDishVote(id);
     refreshDishes();
   }
 
