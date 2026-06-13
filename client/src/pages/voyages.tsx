@@ -1,7 +1,8 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { BackButton } from "@/components/BackButton";
+import { getVisitorId, getVisitorName } from "@/lib/visitor";
 import type { Postcard } from "@shared/schema";
 
 const destinations = [
@@ -18,7 +19,7 @@ const hotspots = [
   {
     id: "posters",
     label: "Travel Posters",
-    description: "Glamorous destinations painted in bold colors. Mars, Venus, Europa — each poster promises adventure beyond imagination.",
+    description: "A riot of color blazes across the far wall — hand-painted travel posters in the grand tradition, each one a promise written in chrome and starlight. Mars glows crimson beneath a sky of butterscotch dust; Venus floats in her cloud-palace like a pearl suspended in amber. They make the impossible feel like a weekend getaway.",
     top: "5%", left: "2%", width: "28%", height: "52%",
     indicatorPos: { top: "30%", left: "50%" },
     showsDestinations: true,
@@ -26,7 +27,7 @@ const hotspots = [
   {
     id: "ticket-counter",
     label: "Ticket Counter",
-    description: "Step right up. Pick your planet, grab your ticket. The next rocket departs at dawn. Send a postcard to let someone know where you're headed.",
+    description: "The brass-and-mahogany counter gleams under fluorescent starlight. A row of departure clocks ticks away the minutes to launch windows across the solar system. Step right up, pick your planet, and send a postcard home — the next rocket clears the stratosphere at dawn, and there's always room for one more dreamer.",
     top: "60%", left: "15%", width: "38%", height: "35%",
     indicatorPos: { top: "40%", left: "50%" },
     showsPostcardForm: true,
@@ -34,35 +35,48 @@ const hotspots = [
   {
     id: "astronaut",
     label: "Captain Cosmo — Travel Agent",
-    description: "Veteran of 200+ voyages. Knows the best crater-side hotels on the Moon and which Saturn ring has the smoothest ride.",
+    description: "Fifty years in the interplanetary travel business and Captain Cosmo still gets a chill when a rocket clears the stratosphere. He's logged two hundred voyages, knows the best crater-side hotels on the Moon, and can tell you which of Saturn's rings catches the light just right at sunset. If there's a corner of the solar system worth visiting, he's already booked the return trip.",
     top: "10%", left: "35%", width: "22%", height: "48%",
     indicatorPos: { top: "25%", left: "50%" },
   },
   {
     id: "rocket-window",
     label: "Launch Window",
-    description: "Through the observation glass, a gleaming chrome rocket stands fueled and ready on the launch pad. Next departure: 0600 hours.",
+    description: "Through the reinforced duralloy observation port, a gleaming chrome rocket stands fueled and ready on the launch pad, her swept-back fins catching the morning sun like polished silver. Wisps of liquid oxygen curl from the booster vents in the pre-dawn chill. Next departure: 0600 hours sharp — don't be late, the cosmos waits for no one.",
     top: "5%", left: "60%", width: "38%", height: "50%",
     indicatorPos: { top: "40%", left: "50%" },
   },
   {
     id: "brochure-rack",
     label: "Brochure Rack",
-    description: "Colorful pamphlets for every destination. 'Titan: Methane Lakes & Starlit Nights' — 'Europa: Dive the Deep' — 'Mars: Pioneer's Paradise'.",
+    description: "A spinning wire rack stuffed with colorful pamphlets, each one more tantalizing than the last. 'Titan: Methane Lakes & Starlit Nights' promises romance under orange skies. 'Europa: Dive the Deep' dares you to explore an alien ocean. Grab a handful — every brochure is a ticket to a daydream you didn't know you needed.",
     top: "60%", left: "58%", width: "38%", height: "35%",
     indicatorPos: { top: "40%", left: "50%" },
   },
 ];
+
+
 
 export default function Voyages() {
   const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
   const [discoveredItems, setDiscoveredItems] = useState<Set<string>>(new Set());
   const [imgLoaded, setImgLoaded] = useState(false);
 
+  useEffect(() => {
+    apiRequest("POST", "/api/visitors", {
+      visitorId: getVisitorId(),
+      visitorName: getVisitorName(),
+      world: "Cosmic Voyages",
+      action: "arrived at",
+      createdAt: new Date().toISOString(),
+    }).catch(() => {});
+  }, []);
+
   // Postcard form
   const [selectedDest, setSelectedDest] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [message, setMessage] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const { data: postcards = [] } = useQuery<Postcard[]>({
     queryKey: ["/api/postcards"],
@@ -84,8 +98,15 @@ export default function Voyages() {
       setMessage("");
       setName("");
       setSelectedDest(null);
+      setShowSuccess(true);
     },
   });
+
+  useEffect(() => {
+    if (!showSuccess) return;
+    const t = setTimeout(() => setShowSuccess(false), 3000);
+    return () => clearTimeout(t);
+  }, [showSuccess]);
 
   const handleHotspotClick = useCallback((id: string) => {
     setDiscoveredItems(prev => new Set(prev).add(id));
@@ -103,8 +124,11 @@ export default function Voyages() {
           <h1 className="pulp-title text-xl md:text-2xl text-[hsl(45,80%,55%)] tracking-wider">
             Cosmic Voyages
           </h1>
-          <div className="visitor-ticker text-xs">
-            <span className="hidden md:inline">Discovered:</span> {discoveredItems.size}/{hotspots.length}
+          <div className="visitor-ticker text-xs" style={{ fontSize: "0.85rem" }}>
+            <span className="hidden md:inline">Discovered:</span>{" "}
+            <span className="pulp-title text-base" style={{ color: discoveredItems.size === hotspots.length ? "hsl(120, 60%, 55%)" : "hsl(45, 80%, 55%)" }}>
+              {discoveredItems.size}/{hotspots.length}
+            </span>
           </div>
         </div>
       </div>
@@ -129,6 +153,8 @@ export default function Voyages() {
                 width: hs.width, height: hs.height,
               }}
               onClick={() => handleHotspotClick(hs.id)}
+              aria-label={`Explore ${hs.label}`}
+              title={hs.label}
               data-testid={`hotspot-${hs.id}`}
             >
               <div
@@ -207,7 +233,7 @@ export default function Voyages() {
                         placeholder="Your name (Commander, Cosmonaut...)"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        className="w-full px-3 py-2 text-sm bg-[hsl(38,30%,85%)] border-2 border-[hsl(30,20%,68%)] rounded focus:border-[hsl(195,65%,38%)] focus:outline-none"
+                        className="w-full px-3 py-2 text-sm bg-[hsl(38,30%,85%)] text-[hsl(25,40%,15%)] border-2 border-[hsl(30,20%,68%)] rounded focus:border-[hsl(195,65%,38%)] focus:outline-none"
                         data-testid="input-postcard-name"
                       />
                       <textarea
@@ -227,6 +253,14 @@ export default function Voyages() {
                         {sendPostcard.isPending ? "Sending..." : "★ Send Postcard"}
                       </button>
                     </>
+                  )}
+
+                  {showSuccess && (
+                    <div className="text-center py-2 animate-fade-in">
+                      <span className="pulp-title text-[hsl(45,80%,48%)] text-lg tracking-wider drop-shadow-sm">
+                        TRANSMISSION RECEIVED!
+                      </span>
+                    </div>
                   )}
 
                   {/* Postcard wall */}

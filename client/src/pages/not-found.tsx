@@ -1,21 +1,34 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { AlertCircle } from "lucide-react";
+import { Link } from "wouter";
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-gray-50">
-      <Card className="w-full max-w-md mx-4">
-        <CardContent className="pt-6">
-          <div className="flex mb-4 gap-2">
-            <AlertCircle className="h-8 w-8 text-red-500" />
-            <h1 className="text-2xl font-bold text-gray-900">404 Page Not Found</h1>
-          </div>
-
-          <p className="mt-4 text-sm text-gray-600">
-            Did you forget to add the page to the router?
+    <div className="min-h-screen bg-[hsl(25,30%,12%)] paper-texture flex flex-col items-center justify-center px-4">
+      <div className="text-center max-w-md mx-auto">
+        <div className="starburst-badge mx-auto mb-4" style={{ width: 72, height: 72, fontSize: "0.65rem" }}>
+          ALERT!
+        </div>
+        <h1 className="pulp-title text-5xl md:text-6xl text-[hsl(45,80%,55%)] tracking-wider drop-shadow-lg mb-2">
+          LOST IN SPACE
+        </h1>
+        <p className="pulp-title text-xl text-[hsl(0,72%,55%)] tracking-wider mb-4">
+          ERROR 404 — SIGNAL NOT FOUND
+        </p>
+        <div className="comic-panel p-6 bg-[hsl(38,35%,88%)] mb-6">
+          <p className="text-sm text-[hsl(25,40%,20%)] leading-relaxed marker-text">
+            Your navigation computer has locked onto a sector of deep space where no pages exist.
+            The void stretches endlessly in every direction. Recommend immediate course correction
+            back to charted territory.
           </p>
-        </CardContent>
-      </Card>
+        </div>
+        <Link href="/">
+          <button className="retro-btn gold text-lg" data-testid="button-404-home">
+            ★ Return to Hub ★
+          </button>
+        </Link>
+        <p className="text-[hsl(38,20%,40%)] text-xs mt-6 marker-text tracking-widest uppercase">
+          ★ The future isn't what it used to be ★
+        </p>
+      </div>
     </div>
   );
 }
