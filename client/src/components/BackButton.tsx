@@ -1,15 +1,14 @@
 import { Link } from "wouter";
-import { ArrowLeft } from "lucide-react";
 
 export function BackButton() {
   return (
     <Link href="/">
       <button
-        className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        className="inline-flex items-center gap-2 text-sm text-[hsl(38,25%,65%)] hover:text-[hsl(45,80%,55%)] transition-colors pulp-title tracking-wider"
         data-testid="button-back"
       >
-        <ArrowLeft className="w-4 h-4" />
-        <span className="tracking-wider uppercase text-xs font-medium">Back to Hub</span>
+        <span className="text-lg">←</span>
+        <span>Back to Hub</span>
       </button>
     </Link>
   );

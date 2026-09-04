@@ -1,11 +1,7 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { BackButton } from "@/components/BackButton";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Atom, ThumbsUp, Lightbulb, Clock, Zap } from "lucide-react";
 import type { Prediction } from "@shared/schema";
 
 const exhibits = [
@@ -17,7 +13,56 @@ const exhibits = [
   { name: "The Moving Sidewalk", icon: "🛤️", desc: "City-wide conveyor walkways replace buses — walk at 30mph." },
 ];
 
+// Hotspots positioned over the expo illustration
+const hotspots = [
+  {
+    id: "jetpack",
+    label: "Jet-Pack Demonstration",
+    description: "A brave volunteer straps on the JP-3000 and lifts off the exhibit floor. The crowd gasps as he banks around the geodesic dome.",
+    top: "10%", left: "2%", width: "22%", height: "55%",
+    indicatorPos: { top: "35%", left: "50%" },
+    exhibitIndex: 0,
+  },
+  {
+    id: "robot-butler",
+    label: "Robot Butler Pavilion",
+    description: "The RB-9 serves hors d'oeuvres with mechanical precision. It can vacuum, cook, and even read bedtime stories to your children.",
+    top: "15%", left: "26%", width: "20%", height: "50%",
+    indicatorPos: { top: "30%", left: "50%" },
+    exhibitIndex: 1,
+  },
+  {
+    id: "time-capsule",
+    label: "The Time Capsule",
+    description: "A sealed vault to be opened in 2050. Leave your prediction — what will the world look like? Will we have flying cars? Colonies on Mars?",
+    top: "50%", left: "30%", width: "40%", height: "35%",
+    indicatorPos: { top: "40%", left: "50%" },
+    showsPredictionForm: true,
+  },
+  {
+    id: "moon-colony",
+    label: "Moon Colony Alpha Model",
+    description: "A scale model of humanity's first permanent lunar settlement. Geodesic domes, hydroponic farms, and a school with a view of Earth.",
+    top: "5%", left: "50%", width: "25%", height: "42%",
+    indicatorPos: { top: "40%", left: "50%" },
+    exhibitIndex: 4,
+  },
+  {
+    id: "videophone",
+    label: "Videophone of Tomorrow",
+    description: "Pick up the receiver and see the face of anyone you call, anywhere in the world. The future of communication is here — in full color.",
+    top: "15%", left: "76%", width: "22%", height: "45%",
+    indicatorPos: { top: "35%", left: "50%" },
+    exhibitIndex: 3,
+  },
+];
+
 export default function Expo() {
+  const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
+  const [discoveredItems, setDiscoveredItems] = useState<Set<string>>(new Set());
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  // Prediction form
   const [name, setName] = useState("");
   const [prediction, setPrediction] = useState("");
 
@@ -52,123 +97,168 @@ export default function Expo() {
     },
   });
 
+  const handleHotspotClick = useCallback((id: string) => {
+    setDiscoveredItems(prev => new Set(prev).add(id));
+    setActiveHotspot(prev => prev === id ? null : id);
+  }, []);
+
+  const activeData = hotspots.find(h => h.id === activeHotspot);
+  const activeExhibit = activeData?.exhibitIndex !== undefined ? exhibits[activeData.exhibitIndex] : null;
+
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-[hsl(42,35%,22%)] to-[hsl(38,30%,16%)] text-white pb-12 pt-6 px-4">
-        <div className="absolute inset-0 opacity-20" style={{
-          backgroundImage: 'radial-gradient(circle at 30% 40%, hsl(45, 70%, 50%, 0.4) 0%, transparent 50%), radial-gradient(circle at 70% 60%, hsl(12, 55%, 55%, 0.3) 0%, transparent 40%)',
-        }} />
-        <div className="max-w-4xl mx-auto relative z-10">
+    <div className="min-h-screen bg-[hsl(25,30%,12%)] paper-texture">
+      {/* Scene header */}
+      <div className="bg-[hsl(42,35%,16%)] border-b-4 border-[hsl(45,80%,48%)] px-4 py-3">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
           <BackButton />
-          <div className="flex items-center gap-4 mt-6 mb-3">
-            <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-sm">
-              <Atom className="w-8 h-8" />
-            </div>
-            <div>
-              <h1 className="retro-title text-2xl md:text-3xl tracking-wider">The Atomic Expo</h1>
-              <p className="text-white/60 text-sm tracking-widest uppercase">World's Fair of Tomorrow — Est. 1962</p>
-            </div>
+          <h1 className="pulp-title text-xl md:text-2xl text-[hsl(45,80%,55%)] tracking-wider">
+            The Atomic Expo
+          </h1>
+          <div className="visitor-ticker text-xs">
+            <span className="hidden md:inline">Discovered:</span> {discoveredItems.size}/{hotspots.length}
           </div>
-          <p className="text-white/70 text-sm max-w-lg mt-2">
-            Explore the exhibits. Then leave your own prediction for the future in the Time Capsule.
-          </p>
         </div>
       </div>
 
-      <main className="max-w-4xl mx-auto px-4 -mt-6 relative z-10 pb-16">
-        {/* Exhibits */}
-        <section className="mb-10">
-          <h2 className="retro-title text-sm text-muted-foreground tracking-widest mb-4 flex items-center gap-2">
-            <Zap className="w-4 h-4" /> The Exhibits
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {exhibits.map((ex) => (
+      {/* Scene illustration */}
+      <div className="max-w-5xl mx-auto px-4 pt-4">
+        <div className="scene-container relative" data-testid="scene-expo">
+          <img
+            src="./scenes/expo-scene.png"
+            alt="The Atomic Expo — City of Tomorrow with jetpack demo, robot butler, moon colony, videophone"
+            className="w-full h-auto block"
+            onLoad={() => setImgLoaded(true)}
+            draggable={false}
+          />
+
+          {imgLoaded && hotspots.map((hs) => (
+            <button
+              key={hs.id}
+              className={`hotspot ${discoveredItems.has(hs.id) ? "border-[hsl(120,50%,45%)]/40" : ""} ${activeHotspot === hs.id ? "bg-[hsl(45,80%,55%)]/20 border-[hsl(45,80%,55%)]" : ""}`}
+              style={{
+                top: hs.top, left: hs.left,
+                width: hs.width, height: hs.height,
+              }}
+              onClick={() => handleHotspotClick(hs.id)}
+              data-testid={`hotspot-${hs.id}`}
+            >
               <div
-                key={ex.name}
-                className="bg-card border border-border/40 rounded-xl p-4 group hover:shadow-md transition-shadow"
-              >
-                <div className="text-3xl mb-2">{ex.icon}</div>
-                <h3 className="retro-title text-xs text-foreground mb-1">{ex.name}</h3>
-                <p className="text-xs text-muted-foreground leading-relaxed">{ex.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Time Capsule Form */}
-        <section className="mb-10">
-          <div className="retro-card">
-            <h2 className="retro-title text-sm text-foreground tracking-widest mb-1 flex items-center gap-2">
-              <Clock className="w-4 h-4 text-[hsl(45,70%,50%)]" /> The Time Capsule
-            </h2>
-            <p className="text-xs text-muted-foreground mb-4">What does the future hold? Leave your prediction.</p>
-            <div className="flex flex-col gap-3">
-              <Input
-                placeholder="Your name"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="bg-background/50"
-                data-testid="input-prediction-name"
+                className="hotspot-indicator"
+                style={{ top: hs.indicatorPos.top, left: hs.indicatorPos.left, transform: "translate(-50%, -50%)" }}
               />
-              <Textarea
-                placeholder="By the year 2050, I predict that..."
-                value={prediction}
-                onChange={(e) => setPrediction(e.target.value)}
-                rows={3}
-                className="bg-background/50 resize-none"
-                data-testid="input-prediction-text"
-              />
-              <Button
-                onClick={() => submitPrediction.mutate()}
-                disabled={!name.trim() || !prediction.trim() || submitPrediction.isPending}
-                className="self-end bg-[hsl(45,70%,50%)] hover:bg-[hsl(45,70%,45%)] text-[hsl(42,35%,12%)]"
-                data-testid="button-submit-prediction"
-              >
-                <Lightbulb className="w-4 h-4 mr-2" />
-                {submitPrediction.isPending ? "Sealing..." : "Seal in Capsule"}
-              </Button>
-            </div>
-          </div>
-        </section>
+            </button>
+          ))}
+        </div>
 
-        {/* Predictions Wall */}
-        <section>
-          <h2 className="retro-title text-sm text-muted-foreground tracking-widest mb-4 flex items-center gap-2">
-            <Lightbulb className="w-4 h-4" /> Predictions ({predictions.length})
-          </h2>
-          {predictions.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Clock className="w-10 h-10 mx-auto mb-3 opacity-40" />
-              <p className="text-sm">The Time Capsule is empty. Be the first to leave a prediction.</p>
+        {!activeHotspot && (
+          <p className="text-center text-[hsl(38,20%,50%)] text-xs mt-3 marker-text animate-fade-in">
+            ★ Click the glowing spots to explore the expo ★
+          </p>
+        )}
+      </div>
+
+      {/* Discovery panel */}
+      {activeData && (
+        <div className="max-w-5xl mx-auto px-4 mt-4 pb-8 animate-slide-up">
+          <div className="discovery-panel relative mx-auto" style={{ position: "relative", maxWidth: 600 }}>
+            <div className="discovery-panel-header" style={{ background: "hsl(45, 80%, 48%)", color: "hsl(25, 40%, 12%)" }}>
+              <span>{activeData.label}</span>
+              <button
+                onClick={() => setActiveHotspot(null)}
+                className="text-[hsl(25,40%,20%)] hover:text-black text-lg leading-none"
+                data-testid="button-close-panel"
+              >
+                ✕
+              </button>
             </div>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {predictions.map((pred) => (
-                <div
-                  key={pred.id}
-                  className="bg-card border border-border/40 rounded-xl p-4 flex items-start gap-4"
-                  data-testid={`card-prediction-${pred.id}`}
-                >
-                  <button
-                    onClick={() => voteMutation.mutate(pred.id)}
-                    disabled={voteMutation.isPending}
-                    className="flex flex-col items-center gap-1 shrink-0 mt-1 group"
-                    data-testid={`button-vote-prediction-${pred.id}`}
-                  >
-                    <ThumbsUp className="w-5 h-5 text-muted-foreground group-hover:text-[hsl(45,70%,50%)] transition-colors" />
-                    <span className="text-xs font-bold text-foreground">{pred.votes}</span>
-                  </button>
-                  <div className="min-w-0">
-                    <p className="text-sm text-foreground leading-relaxed">{pred.prediction}</p>
-                    <p className="text-xs text-muted-foreground mt-1.5">— {pred.visitorName}</p>
+            <div className="discovery-panel-body">
+              <p className="text-sm text-[hsl(25,40%,20%)] leading-relaxed mb-4">
+                {activeData.description}
+              </p>
+
+              {/* Exhibit detail */}
+              {activeExhibit && (
+                <div className="comic-panel p-4 bg-[hsl(38,35%,88%)] flex items-start gap-3">
+                  <span className="text-3xl">{activeExhibit.icon}</span>
+                  <div>
+                    <span className="pulp-title text-sm text-[hsl(25,40%,15%)]">{activeExhibit.name}</span>
+                    <p className="text-xs text-[hsl(25,20%,40%)] mt-1">{activeExhibit.desc}</p>
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* Time Capsule → Prediction form */}
+              {activeData.showsPredictionForm && (
+                <div className="space-y-3">
+                  <h3 className="pulp-title text-sm text-[hsl(45,80%,42%)] tracking-wider">Seal Your Prediction</h3>
+                  <p className="text-xs text-[hsl(25,15%,42%)]">What does the future hold? Leave your prediction in the Time Capsule.</p>
+                  <input
+                    placeholder="Your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full px-3 py-2 text-sm bg-[hsl(38,30%,85%)] border-2 border-[hsl(30,20%,68%)] rounded focus:border-[hsl(45,80%,48%)] focus:outline-none"
+                    data-testid="input-prediction-name"
+                  />
+                  <textarea
+                    placeholder="By the year 2050, I predict that..."
+                    value={prediction}
+                    onChange={(e) => setPrediction(e.target.value)}
+                    rows={3}
+                    className="w-full px-3 py-2 text-sm bg-[hsl(38,30%,85%)] border-2 border-[hsl(30,20%,68%)] rounded focus:border-[hsl(45,80%,48%)] focus:outline-none resize-none"
+                    data-testid="input-prediction-text"
+                  />
+                  <button
+                    onClick={() => submitPrediction.mutate()}
+                    disabled={!name.trim() || !prediction.trim() || submitPrediction.isPending}
+                    className="retro-btn gold text-sm"
+                    data-testid="button-submit-prediction"
+                  >
+                    {submitPrediction.isPending ? "Sealing..." : "★ Seal in Capsule"}
+                  </button>
+
+                  {/* Predictions */}
+                  {predictions.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      <h4 className="pulp-title text-xs text-[hsl(0,72%,48%)] tracking-wider">
+                        Predictions ({predictions.length})
+                      </h4>
+                      {predictions.map(pred => (
+                        <div key={pred.id} className="comic-panel p-3 bg-[hsl(38,35%,88%)] flex items-start gap-3" data-testid={`card-prediction-${pred.id}`}>
+                          <button
+                            onClick={() => voteMutation.mutate(pred.id)}
+                            disabled={voteMutation.isPending}
+                            className="flex flex-col items-center gap-0.5 shrink-0 mt-0.5 hover:scale-110 transition-transform"
+                            data-testid={`button-vote-prediction-${pred.id}`}
+                          >
+                            <span className="text-lg">👍</span>
+                            <span className="text-xs font-bold text-[hsl(25,40%,15%)]">{pred.votes}</span>
+                          </button>
+                          <div>
+                            <p className="text-sm text-[hsl(25,40%,15%)] leading-relaxed">{pred.prediction}</p>
+                            <p className="text-xs text-[hsl(25,15%,50%)] mt-1">— {pred.visitorName}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Generic discovery for non-special hotspots */}
+              {!activeExhibit && !activeData.showsPredictionForm && (
+                <div className="flex gap-2 mt-2">
+                  <div className="starburst-badge" style={{ width: 44, height: 44, fontSize: "0.5rem" }}>
+                    FOUND!
+                  </div>
+                  <p className="text-xs text-[hsl(25,15%,50%)] italic">
+                    You discovered {activeData.label}. Keep exploring.
+                  </p>
+                </div>
+              )}
             </div>
-          )}
-        </section>
-      </main>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
