@@ -341,6 +341,28 @@
   .animate-wiggle { animation: wiggle 3s ease-in-out infinite; }
   .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both; }
   .animate-fade-in { animation: fadeIn 0.3s ease-out both; }
+
+  /* Respect users who prefer reduced motion: drop looping/decorative
+     animations and collapse transitions while keeping content visible. */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-float,
+    .animate-wiggle,
+    .hotspot-indicator,
+    .animate-pulse {
+      animation: none !important;
+    }
+    .animate-slide-up,
+    .animate-fade-in {
+      animation: none !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .hotspot,
+    .hotspot::before,
+    .retro-btn {
+      transition-duration: 0.01ms !important;
+    }
+  }
 }
 
 /* Elevation utilities */
