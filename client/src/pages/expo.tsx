@@ -1,6 +1,7 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
+import { getVisitorId, getVisitorName } from "@/lib/visitor";
 import { BackButton } from "@/components/BackButton";
 import type { Prediction } from "@shared/schema";
 
@@ -18,7 +19,7 @@ const hotspots = [
   {
     id: "jetpack",
     label: "Jet-Pack Demonstration",
-    description: "A brave volunteer straps on the JP-3000 and lifts off the exhibit floor. The crowd gasps as he banks around the geodesic dome.",
+    description: "A brave volunteer straps on the JP-3000 and lifts off the exhibit floor to thunderous applause. Twin hydrogen jets roar to life, painting blue-white contrails across the inside of the geodesic dome. The crowd cranes their necks as he banks, spirals, and touches down again with the casual grace of a man stepping off a streetcar. The future of commuting, ladies and gentlemen — no traffic, no trains, just sky.",
     top: "10%", left: "2%", width: "22%", height: "55%",
     indicatorPos: { top: "35%", left: "50%" },
     exhibitIndex: 0,
@@ -26,7 +27,7 @@ const hotspots = [
   {
     id: "robot-butler",
     label: "Robot Butler Pavilion",
-    description: "The RB-9 serves hors d'oeuvres with mechanical precision. It can vacuum, cook, and even read bedtime stories to your children.",
+    description: "The RB-9 Household Companion glides across the pavilion floor, serving canapés with mechanical precision and a courteous bow of its chrome dome. It can vacuum your parlor, prepare a four-course dinner, and read your children to sleep with a voice like warm brass. The sign above the display reads: 'WHY DO IT YOURSELF WHEN SCIENCE CAN DO IT BETTER?'",
     top: "15%", left: "26%", width: "20%", height: "50%",
     indicatorPos: { top: "30%", left: "50%" },
     exhibitIndex: 1,
@@ -34,7 +35,7 @@ const hotspots = [
   {
     id: "time-capsule",
     label: "The Time Capsule",
-    description: "A sealed vault to be opened in 2050. Leave your prediction — what will the world look like? Will we have flying cars? Colonies on Mars?",
+    description: "A gleaming titanium vault sunk three feet into the exhibition floor, its surface engraved with the atomic symbol and the words 'TO BE OPENED — 2050 A.D.' Inside, the predictions of today's visitors will sleep alongside newspaper clippings and a bottle of Lunar Lemonade. What will the world look like in twenty-five years? Flying cars? Colonies on Mars? Seal your prediction and let the future be the judge.",
     top: "50%", left: "30%", width: "40%", height: "35%",
     indicatorPos: { top: "40%", left: "50%" },
     showsPredictionForm: true,
@@ -42,7 +43,7 @@ const hotspots = [
   {
     id: "moon-colony",
     label: "Moon Colony Alpha Model",
-    description: "A scale model of humanity's first permanent lunar settlement. Geodesic domes, hydroponic farms, and a school with a view of Earth.",
+    description: "Under a spotlight the size of a dinner plate, a meticulous scale model of humanity's first permanent lunar settlement stretches across a table twelve feet long. Tiny geodesic domes cluster around a central plaza, connected by pressurized walkways. Miniature hydroponic farms glow green under artificial sunlight, and if you lean close, you can see a little school with windows facing Earth — so the children never forget where they came from.",
     top: "5%", left: "50%", width: "25%", height: "42%",
     indicatorPos: { top: "40%", left: "50%" },
     exhibitIndex: 4,
@@ -50,7 +51,7 @@ const hotspots = [
   {
     id: "videophone",
     label: "Videophone of Tomorrow",
-    description: "Pick up the receiver and see the face of anyone you call, anywhere in the world. The future of communication is here — in full color.",
+    description: "Pick up the sleek Bakelite receiver and a six-inch screen flickers to life in glorious Technicolor. See the face of anyone you call, anywhere in the world — your mother in Peoria, your colleague on the Moon relay station, or the operator on Mars with the three-minute light delay. The future of communication is here, and it fits right on your desk.",
     top: "15%", left: "76%", width: "22%", height: "45%",
     indicatorPos: { top: "35%", left: "50%" },
     exhibitIndex: 3,
@@ -62,9 +63,20 @@ export default function Expo() {
   const [discoveredItems, setDiscoveredItems] = useState<Set<string>>(new Set());
   const [imgLoaded, setImgLoaded] = useState(false);
 
+  useEffect(() => {
+    apiRequest("POST", "/api/visitors", {
+      visitorId: getVisitorId(),
+      visitorName: getVisitorName(),
+      world: "The Atomic Expo",
+      action: "arrived at",
+      createdAt: new Date().toISOString(),
+    }).catch(() => {});
+  }, []);
+
   // Prediction form
   const [name, setName] = useState("");
   const [prediction, setPrediction] = useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
 
   const { data: predictions = [] } = useQuery<Prediction[]>({
     queryKey: ["/api/predictions"],
@@ -84,8 +96,15 @@ export default function Expo() {
       queryClient.invalidateQueries({ queryKey: ["/api/predictions"] });
       setPrediction("");
       setName("");
+      setShowSuccess(true);
     },
   });
+
+  useEffect(() => {
+    if (!showSuccess) return;
+    const t = setTimeout(() => setShowSuccess(false), 3000);
+    return () => clearTimeout(t);
+  }, [showSuccess]);
 
   const voteMutation = useMutation({
     mutationFn: async (id: number) => {
@@ -114,8 +133,11 @@ export default function Expo() {
           <h1 className="pulp-title text-xl md:text-2xl text-[hsl(45,80%,55%)] tracking-wider">
             The Atomic Expo
           </h1>
-          <div className="visitor-ticker text-xs">
-            <span className="hidden md:inline">Discovered:</span> {discoveredItems.size}/{hotspots.length}
+          <div className="visitor-ticker text-xs" style={{ fontSize: "0.85rem" }}>
+            <span className="hidden md:inline">Discovered:</span>{" "}
+            <span className="pulp-title text-base" style={{ color: discoveredItems.size === hotspots.length ? "hsl(120, 60%, 55%)" : "hsl(45, 80%, 55%)" }}>
+              {discoveredItems.size}/{hotspots.length}
+            </span>
           </div>
         </div>
       </div>
@@ -140,6 +162,8 @@ export default function Expo() {
                 width: hs.width, height: hs.height,
               }}
               onClick={() => handleHotspotClick(hs.id)}
+              aria-label={`Explore ${hs.label}`}
+              title={hs.label}
               data-testid={`hotspot-${hs.id}`}
             >
               <div
@@ -196,7 +220,7 @@ export default function Expo() {
                     placeholder="Your name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-[hsl(38,30%,85%)] border-2 border-[hsl(30,20%,68%)] rounded focus:border-[hsl(45,80%,48%)] focus:outline-none"
+                    className="w-full px-3 py-2 text-sm bg-[hsl(38,30%,85%)] text-[hsl(25,40%,15%)] border-2 border-[hsl(30,20%,68%)] rounded focus:border-[hsl(45,80%,48%)] focus:outline-none"
                     data-testid="input-prediction-name"
                   />
                   <textarea
@@ -215,6 +239,14 @@ export default function Expo() {
                   >
                     {submitPrediction.isPending ? "Sealing..." : "★ Seal in Capsule"}
                   </button>
+
+                  {showSuccess && (
+                    <div className="text-center py-2 animate-fade-in">
+                      <span className="pulp-title text-[hsl(45,80%,48%)] text-lg tracking-wider drop-shadow-sm">
+                        TRANSMISSION RECEIVED!
+                      </span>
+                    </div>
+                  )}
 
                   {/* Predictions */}
                   {predictions.length > 0 && (

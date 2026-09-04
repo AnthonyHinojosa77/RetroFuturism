@@ -1,7 +1,49 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import type { Visitor } from "@shared/schema";
+
+function VisitorTicker({ visitors }: { visitors: Visitor[] }) {
+  const recent = useMemo(() => visitors.slice(0, 5), [visitors]);
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    if (recent.length <= 1) return;
+    const timer = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIndex(prev => (prev + 1) % recent.length);
+        setVisible(true);
+      }, 400);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, [recent.length]);
+
+  if (recent.length === 0) {
+    return (
+      <div className="visitor-ticker mx-auto mt-3" data-testid="text-visitor-ticker">
+        <span className="inline-block w-2 h-2 rounded-full bg-[hsl(38,20%,45%)]" />
+        No visitors yet — be the first explorer!
+      </div>
+    );
+  }
+
+  const v = recent[index % recent.length];
+  return (
+    <div className="visitor-ticker mx-auto mt-3" data-testid="text-visitor-ticker">
+      <span className="inline-block w-2 h-2 rounded-full bg-[hsl(120,60%,50%)] animate-pulse" />
+      <span
+        style={{
+          transition: "opacity 0.4s ease",
+          opacity: visible ? 1 : 0,
+        }}
+      >
+        {v.visitorName} {v.action} {v.world}
+      </span>
+    </div>
+  );
+}
 
 // The Hub is a pulp magazine cover — three clickable comic panels lead to each world
 export default function Hub() {
@@ -55,12 +97,7 @@ export default function Hub() {
         <p className="marker-text text-[hsl(38,30%,75%)] text-sm md:text-base mt-1 tracking-wide">
           A Social Voyage Through Tomorrow's Past
         </p>
-        {recentVisitors && recentVisitors.length > 0 && (
-          <div className="visitor-ticker mx-auto mt-3" data-testid="text-visitor-ticker">
-            <span className="inline-block w-2 h-2 rounded-full bg-[hsl(120,60%,50%)] animate-pulse" />
-            {recentVisitors[0]?.visitorName} {recentVisitors[0]?.action} in {recentVisitors[0]?.world}
-          </div>
-        )}
+        <VisitorTicker visitors={recentVisitors ?? []} />
       </header>
 
       {/* Magazine cover illustration with clickable panels */}
@@ -80,6 +117,9 @@ export default function Hub() {
             <Link key={world.id} href={world.path}>
               <div
                 className="hotspot"
+                role="button"
+                aria-label={`Enter ${world.title} — ${world.subtitle}`}
+                title={world.title}
                 style={{
                   top: world.top,
                   left: world.left,
