@@ -41,8 +41,12 @@ export async function registerRoutes(
   app.post("/api/predictions/:id/vote", writeLimiter, (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
-    const prediction = storage.votePrediction(id);
-    if (!prediction) return res.status(404).json({ error: "Not found" });
+    const visitorId = req.body.visitorId;
+    if (!visitorId || typeof visitorId !== "string") {
+      return res.status(400).json({ error: "visitorId required" });
+    }
+    const prediction = storage.votePrediction(id, visitorId);
+    if (!prediction) return res.status(409).json({ error: "Already voted" });
     res.json(prediction);
   });
 
@@ -62,8 +66,12 @@ export async function registerRoutes(
   app.post("/api/menu-items/:id/vote", writeLimiter, (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
-    const item = storage.voteMenuItem(id);
-    if (!item) return res.status(404).json({ error: "Not found" });
+    const visitorId = req.body.visitorId;
+    if (!visitorId || typeof visitorId !== "string") {
+      return res.status(400).json({ error: "visitorId required" });
+    }
+    const item = storage.voteMenuItem(id, visitorId);
+    if (!item) return res.status(409).json({ error: "Already voted" });
     res.json(item);
   });
 

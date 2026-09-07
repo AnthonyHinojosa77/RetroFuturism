@@ -3,10 +3,11 @@ import {
   type Prediction, type InsertPrediction, predictions,
   type MenuItem, type InsertMenuItem, menuItems,
   type Visitor, type InsertVisitor, visitors,
+  type Vote, type InsertVote, votes,
 } from "@shared/schema";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import Database from "better-sqlite3";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and } from "drizzle-orm";
 
 const sqlite = new Database("data.db");
 sqlite.pragma("journal_mode = WAL");
@@ -21,16 +22,20 @@ export interface IStorage {
   // Predictions
   getPredictions(): Prediction[];
   createPrediction(prediction: InsertPrediction): Prediction;
-  votePrediction(id: number): Prediction | undefined;
+  votePrediction(id: number, visitorId: string): Prediction | undefined;
 
   // Menu items
   getMenuItems(): MenuItem[];
   createMenuItem(item: InsertMenuItem): MenuItem;
-  voteMenuItem(id: number): MenuItem | undefined;
+  voteMenuItem(id: number, visitorId: string): MenuItem | undefined;
 
   // Visitors
   getRecentVisitors(world?: string): Visitor[];
   logVisitor(visitor: InsertVisitor): Visitor;
+
+  // Votes
+  hasVoted(visitorId: string, itemType: string, itemId: number): boolean;
+  recordVote(vote: InsertVote): Vote;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -50,7 +55,9 @@ export class DatabaseStorage implements IStorage {
     return db.insert(predictions).values(prediction).returning().get();
   }
 
-  votePrediction(id: number): Prediction | undefined {
+  votePrediction(id: number, visitorId: string): Prediction | undefined {
+    if (this.hasVoted(visitorId, "prediction", id)) return undefined;
+    this.recordVote({ visitorId, itemType: "prediction", itemId: id, createdAt: new Date().toISOString() });
     return db.update(predictions)
       .set({ votes: sql`${predictions.votes} + 1` })
       .where(eq(predictions.id, id))
@@ -66,7 +73,9 @@ export class DatabaseStorage implements IStorage {
     return db.insert(menuItems).values(item).returning().get();
   }
 
-  voteMenuItem(id: number): MenuItem | undefined {
+  voteMenuItem(id: number, visitorId: string): MenuItem | undefined {
+    if (this.hasVoted(visitorId, "menuItem", id)) return undefined;
+    this.recordVote({ visitorId, itemType: "menuItem", itemId: id, createdAt: new Date().toISOString() });
     return db.update(menuItems)
       .set({ votes: sql`${menuItems.votes} + 1` })
       .where(eq(menuItems.id, id))
@@ -90,6 +99,17 @@ export class DatabaseStorage implements IStorage {
 
   logVisitor(visitor: InsertVisitor): Visitor {
     return db.insert(visitors).values(visitor).returning().get();
+  }
+
+  hasVoted(visitorId: string, itemType: string, itemId: number): boolean {
+    const result = db.select().from(votes)
+      .where(and(eq(votes.visitorId, visitorId), eq(votes.itemType, itemType), eq(votes.itemId, itemId)))
+      .get();
+    return !!result;
+  }
+
+  recordVote(vote: InsertVote): Vote {
+    return db.insert(votes).values(vote).returning().get();
   }
 }
 

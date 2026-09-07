@@ -70,3 +70,20 @@ export const insertVisitorSchema = createInsertSchema(visitors).omit({ id: true 
 });
 export type InsertVisitor = z.infer<typeof insertVisitorSchema>;
 export type Visitor = typeof visitors.$inferSelect;
+
+// Vote tracking — prevents duplicate votes per visitor
+export const votes = sqliteTable("votes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  visitorId: text("visitor_id").notNull(),
+  itemType: text("item_type").notNull(), // "prediction" | "menuItem"
+  itemId: integer("item_id").notNull(),
+  createdAt: text("created_at").notNull(),
+});
+
+export const insertVoteSchema = createInsertSchema(votes).omit({ id: true }).extend({
+  visitorId: z.string().min(1),
+  itemType: z.enum(["prediction", "menuItem"]),
+  itemId: z.number().int().positive(),
+});
+export type InsertVote = z.infer<typeof insertVoteSchema>;
+export type Vote = typeof votes.$inferSelect;
