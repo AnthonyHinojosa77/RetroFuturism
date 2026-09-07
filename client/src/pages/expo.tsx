@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { getVisitorId, getVisitorName } from "@/lib/visitor";
+import { getVisitorId, getVisitorName, shouldLogVisit } from "@/lib/visitor";
 import { BackButton } from "@/components/BackButton";
 import type { Prediction } from "@shared/schema";
 
@@ -64,6 +64,7 @@ export default function Expo() {
   const [imgLoaded, setImgLoaded] = useState(false);
 
   useEffect(() => {
+    if (!shouldLogVisit("The Atomic Expo")) return;
     apiRequest("POST", "/api/visitors", {
       visitorId: getVisitorId(),
       visitorName: getVisitorName(),

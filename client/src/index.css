@@ -223,7 +223,7 @@
 
   /* Discovery panel — speech-bubble style */
   .discovery-panel {
-    position: fixed;
+    position: absolute;
     z-index: 50;
     max-width: 480px;
     background: hsl(38 35% 92%);

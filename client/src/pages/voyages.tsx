@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { BackButton } from "@/components/BackButton";
-import { getVisitorId, getVisitorName } from "@/lib/visitor";
+import { getVisitorId, getVisitorName, shouldLogVisit } from "@/lib/visitor";
 import type { Postcard } from "@shared/schema";
 
 const destinations = [
@@ -63,6 +63,7 @@ export default function Voyages() {
   const [imgLoaded, setImgLoaded] = useState(false);
 
   useEffect(() => {
+    if (!shouldLogVisit("Cosmic Voyages")) return;
     apiRequest("POST", "/api/visitors", {
       visitorId: getVisitorId(),
       visitorName: getVisitorName(),

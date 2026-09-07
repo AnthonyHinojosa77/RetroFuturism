@@ -17,3 +17,12 @@ export function getVisitorName(): string {
   }
   return visitorName;
 }
+
+// Guard against duplicate visitor logs (React 18 StrictMode double-mount in dev)
+const loggedWorlds = new Set<string>();
+
+export function shouldLogVisit(world: string): boolean {
+  if (loggedWorlds.has(world)) return false;
+  loggedWorlds.add(world);
+  return true;
+}

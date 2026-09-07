@@ -2,7 +2,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { BackButton } from "@/components/BackButton";
-import { getVisitorId, getVisitorName } from "@/lib/visitor";
+import { getVisitorId, getVisitorName, shouldLogVisit } from "@/lib/visitor";
 import type { MenuItem } from "@shared/schema";
 
 // Hotspot definitions — positioned over the diner illustration
@@ -63,6 +63,7 @@ export default function Diner() {
   const [imgLoaded, setImgLoaded] = useState(false);
 
   useEffect(() => {
+    if (!shouldLogVisit("Astro Diner")) return;
     apiRequest("POST", "/api/visitors", {
       visitorId: getVisitorId(),
       visitorName: getVisitorName(),
