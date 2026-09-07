@@ -2,11 +2,15 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPostcardSchema, insertPredictionSchema, insertMenuItemSchema, insertVisitorSchema } from "@shared/schema";
+import { apiLimiter, writeLimiter } from "./middleware";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  // Apply general API rate limiting to all /api routes
+  app.use("/api", apiLimiter);
 
   // === POSTCARDS (Space Tourism) ===
   app.get("/api/postcards", (_req, res) => {
@@ -14,7 +18,7 @@ export async function registerRoutes(
     res.json(postcards);
   });
 
-  app.post("/api/postcards", (req, res) => {
+  app.post("/api/postcards", writeLimiter, (req, res) => {
     const parsed = insertPostcardSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.message });
     const postcard = storage.createPostcard(parsed.data);
@@ -27,14 +31,14 @@ export async function registerRoutes(
     res.json(predictions);
   });
 
-  app.post("/api/predictions", (req, res) => {
+  app.post("/api/predictions", writeLimiter, (req, res) => {
     const parsed = insertPredictionSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.message });
     const prediction = storage.createPrediction(parsed.data);
     res.status(201).json(prediction);
   });
 
-  app.post("/api/predictions/:id/vote", (req, res) => {
+  app.post("/api/predictions/:id/vote", writeLimiter, (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const prediction = storage.votePrediction(id);
@@ -48,14 +52,14 @@ export async function registerRoutes(
     res.json(items);
   });
 
-  app.post("/api/menu-items", (req, res) => {
+  app.post("/api/menu-items", writeLimiter, (req, res) => {
     const parsed = insertMenuItemSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.message });
     const item = storage.createMenuItem(parsed.data);
     res.status(201).json(item);
   });
 
-  app.post("/api/menu-items/:id/vote", (req, res) => {
+  app.post("/api/menu-items/:id/vote", writeLimiter, (req, res) => {
     const id = parseInt(req.params.id);
     if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const item = storage.voteMenuItem(id);
@@ -70,7 +74,7 @@ export async function registerRoutes(
     res.json(visitors);
   });
 
-  app.post("/api/visitors", (req, res) => {
+  app.post("/api/visitors", writeLimiter, (req, res) => {
     const parsed = insertVisitorSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: parsed.error.message });
     const visitor = storage.logVisitor(parsed.data);

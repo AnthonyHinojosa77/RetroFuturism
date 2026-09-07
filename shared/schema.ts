@@ -11,7 +11,11 @@ export const postcards = sqliteTable("postcards", {
   createdAt: text("created_at").notNull(),
 });
 
-export const insertPostcardSchema = createInsertSchema(postcards).omit({ id: true });
+export const insertPostcardSchema = createInsertSchema(postcards).omit({ id: true }).extend({
+  visitorName: z.string().min(1).max(50),
+  destination: z.string().min(1).max(50),
+  message: z.string().min(1).max(500),
+});
 export type InsertPostcard = z.infer<typeof insertPostcardSchema>;
 export type Postcard = typeof postcards.$inferSelect;
 
@@ -24,7 +28,10 @@ export const predictions = sqliteTable("predictions", {
   createdAt: text("created_at").notNull(),
 });
 
-export const insertPredictionSchema = createInsertSchema(predictions).omit({ id: true, votes: true });
+export const insertPredictionSchema = createInsertSchema(predictions).omit({ id: true, votes: true }).extend({
+  visitorName: z.string().min(1).max(50),
+  prediction: z.string().min(1).max(500),
+});
 export type InsertPrediction = z.infer<typeof insertPredictionSchema>;
 export type Prediction = typeof predictions.$inferSelect;
 
@@ -38,7 +45,11 @@ export const menuItems = sqliteTable("menu_items", {
   createdAt: text("created_at").notNull(),
 });
 
-export const insertMenuItemSchema = createInsertSchema(menuItems).omit({ id: true, votes: true });
+export const insertMenuItemSchema = createInsertSchema(menuItems).omit({ id: true, votes: true }).extend({
+  visitorName: z.string().min(1).max(50),
+  dishName: z.string().min(1).max(100),
+  description: z.string().min(1).max(500),
+});
 export type InsertMenuItem = z.infer<typeof insertMenuItemSchema>;
 export type MenuItem = typeof menuItems.$inferSelect;
 
@@ -52,6 +63,10 @@ export const visitors = sqliteTable("visitors", {
   createdAt: text("created_at").notNull(),
 });
 
-export const insertVisitorSchema = createInsertSchema(visitors).omit({ id: true });
+export const insertVisitorSchema = createInsertSchema(visitors).omit({ id: true }).extend({
+  visitorName: z.string().min(1).max(50),
+  world: z.string().min(1).max(50),
+  action: z.string().min(1).max(50),
+});
 export type InsertVisitor = z.infer<typeof insertVisitorSchema>;
 export type Visitor = typeof visitors.$inferSelect;
