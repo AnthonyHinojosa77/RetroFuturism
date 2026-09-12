@@ -1,12 +1,19 @@
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { queryClient, apiRequest } from "@/lib/queryClient";
-import { BackButton } from "@/components/BackButton";
-import { getVisitorId, getVisitorName, shouldLogVisit } from "@/lib/visitor";
+import { getVisitorId } from "@/lib/visitor";
+import WorldPage, { type Hotspot } from "@/components/WorldPage";
+import VoteCard from "@/components/VoteCard";
+import SuccessBanner from "@/components/SuccessBanner";
 import type { MenuItem } from "@shared/schema";
 
-// Hotspot definitions — positioned over the diner illustration
-const hotspots = [
+interface DinerHotspot extends Hotspot {
+  showsMenu?: boolean;
+  showsForm?: boolean;
+}
+
+// Hotspots positioned over the diner illustration
+const hotspots: DinerHotspot[] = [
   {
     id: "jukebox",
     label: "Atomic Jukebox",
@@ -55,25 +62,10 @@ const houseMenu = [
   { name: "Galactic Grilled Cheese", price: "2 Credits", desc: "Cheese from six planets. Melted perfectly." },
 ];
 
-
+const inputClass =
+  "w-full px-3 py-2 text-sm bg-[hsl(38,30%,85%)] text-[hsl(25,40%,15%)] border-2 border-[hsl(30,20%,68%)] rounded focus:border-[hsl(0,72%,48%)] focus:outline-none";
 
 export default function Diner() {
-  const [activeHotspot, setActiveHotspot] = useState<string | null>(null);
-  const [discoveredItems, setDiscoveredItems] = useState<Set<string>>(new Set());
-  const [imgLoaded, setImgLoaded] = useState(false);
-
-  useEffect(() => {
-    if (!shouldLogVisit("Astro Diner")) return;
-    apiRequest("POST", "/api/visitors", {
-      visitorId: getVisitorId(),
-      visitorName: getVisitorName(),
-      world: "Astro Diner",
-      action: "arrived at",
-      createdAt: new Date().toISOString(),
-    }).catch(() => {});
-  }, []);
-
-  // Form state for community dish
   const [name, setName] = useState("");
   const [dishName, setDishName] = useState("");
   const [description, setDescription] = useState("");
@@ -119,196 +111,109 @@ export default function Diner() {
     },
   });
 
-  const handleHotspotClick = useCallback((id: string) => {
-    setDiscoveredItems(prev => new Set(prev).add(id));
-    setActiveHotspot(prev => prev === id ? null : id);
-  }, []);
+  const renderPanelContent = (hs: DinerHotspot) => {
+    // Menu Board hotspot reveals the house menu
+    if (hs.showsMenu) {
+      return (
+        <div className="space-y-2">
+          <h3 className="pulp-title text-sm text-[hsl(0,72%,48%)] tracking-wider">House Specials</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {houseMenu.map(item => (
+              <div key={item.name} className="comic-panel p-3 bg-[hsl(38,35%,88%)]">
+                <div className="flex justify-between items-start gap-1 mb-1">
+                  <span className="pulp-title text-xs text-[hsl(25,40%,15%)]">{item.name}</span>
+                </div>
+                <span className="text-xs font-bold text-[hsl(195,65%,38%)]">{item.price}</span>
+                <p className="text-xs text-[hsl(25,20%,40%)] mt-1">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
 
-  const activeData = hotspots.find(h => h.id === activeHotspot);
+    // Counter hotspot reveals the dish creation form
+    if (hs.showsForm) {
+      return (
+        <div className="space-y-3">
+          <h3 className="pulp-title text-sm text-[hsl(0,72%,48%)] tracking-wider">Invent a Dish</h3>
+          <p className="text-xs text-[hsl(25,15%,42%)]">Dream up a space-age creation for the community menu.</p>
+          <input
+            placeholder="Your name (Chef, Space Cook...)"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className={inputClass}
+            data-testid="input-dish-chef"
+          />
+          <input
+            placeholder="Dish name (e.g., Supernova Spaghetti)"
+            value={dishName}
+            onChange={(e) => setDishName(e.target.value)}
+            className={inputClass}
+            data-testid="input-dish-name"
+          />
+          <textarea
+            placeholder="Describe your creation..."
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={2}
+            className={`${inputClass} resize-none`}
+            data-testid="input-dish-desc"
+          />
+          <button
+            onClick={() => submitDish.mutate()}
+            disabled={!name.trim() || !dishName.trim() || !description.trim() || submitDish.isPending}
+            className="retro-btn text-sm"
+            data-testid="button-submit-dish"
+          >
+            {submitDish.isPending ? "Adding..." : "★ Add to Menu"}
+          </button>
+
+          {showSuccess && <SuccessBanner />}
+
+          {/* Community dishes */}
+          {communityItems.length > 0 && (
+            <div className="mt-4 space-y-2">
+              <h4 className="pulp-title text-xs text-[hsl(195,65%,38%)] tracking-wider">
+                Community Menu ({communityItems.length})
+              </h4>
+              {communityItems.map(item => (
+                <VoteCard
+                  key={item.id}
+                  votes={item.votes}
+                  onVote={() => voteMutation.mutate(item.id)}
+                  isPending={voteMutation.isPending}
+                  cardTestId={`card-menu-${item.id}`}
+                  voteTestId={`button-vote-dish-${item.id}`}
+                >
+                  <span className="pulp-title text-xs text-[hsl(25,40%,15%)]">{item.dishName}</span>
+                  <p className="text-xs text-[hsl(25,20%,40%)] mt-0.5">{item.description}</p>
+                  <p className="text-xs text-[hsl(25,15%,55%)] mt-1">— Chef {item.visitorName}</p>
+                </VoteCard>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    return null; // generic "FOUND!" discovery
+  };
 
   return (
-    <div className="min-h-screen bg-[hsl(25,30%,12%)] paper-texture">
-      {/* Scene header */}
-      <div className="bg-[hsl(350,30%,14%)] border-b-4 border-[hsl(45,80%,45%)] px-4 py-3">
-        <div className="max-w-5xl mx-auto flex items-center justify-between">
-          <BackButton />
-          <h1 className="pulp-title text-xl md:text-2xl text-[hsl(45,80%,55%)] tracking-wider">
-            Astro Diner
-          </h1>
-          <div className="visitor-ticker text-xs" style={{ fontSize: "0.85rem" }}>
-            <span className="hidden md:inline">Discovered:</span>{" "}
-            <span className="pulp-title text-base" style={{ color: discoveredItems.size === hotspots.length ? "hsl(120, 60%, 55%)" : "hsl(45, 80%, 55%)" }}>
-              {discoveredItems.size}/{hotspots.length}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Scene illustration with hotspot overlays */}
-      <div className="max-w-5xl mx-auto px-4 pt-4">
-        <div className="scene-container relative" data-testid="scene-diner">
-          <img
-            src="./scenes/diner-scene.png"
-            alt="Inside the Astro Diner — chrome counter, robot waiter, jukebox, observation window"
-            className="w-full h-auto block"
-            onLoad={() => setImgLoaded(true)}
-            draggable={false}
-          />
-
-          {imgLoaded && hotspots.map((hs) => (
-            <button
-              key={hs.id}
-              className={`hotspot ${discoveredItems.has(hs.id) ? "border-[hsl(120,50%,45%)]/40" : ""} ${activeHotspot === hs.id ? "bg-[hsl(45,80%,55%)]/20 border-[hsl(45,80%,55%)]" : ""}`}
-              style={{
-                top: hs.top, left: hs.left,
-                width: hs.width, height: hs.height,
-              }}
-              onClick={() => handleHotspotClick(hs.id)}
-              aria-label={`Explore ${hs.label}`}
-              title={hs.label}
-              data-testid={`hotspot-${hs.id}`}
-            >
-              <div
-                className="hotspot-indicator"
-                style={{ top: hs.indicatorPos.top, left: hs.indicatorPos.left, transform: "translate(-50%, -50%)" }}
-              />
-            </button>
-          ))}
-        </div>
-
-        {/* Hotspot hint text */}
-        {!activeHotspot && (
-          <p className="text-center text-[hsl(38,20%,50%)] text-xs mt-3 marker-text animate-fade-in">
-            ★ Click the glowing spots to explore the diner ★
-          </p>
-        )}
-      </div>
-
-      {/* Discovery panel — opens when a hotspot is clicked */}
-      {activeData && (
-        <div className="max-w-5xl mx-auto px-4 mt-4 pb-8 animate-slide-up">
-          <div className="discovery-panel relative mx-auto" style={{ position: "relative", maxWidth: 600 }}>
-            <div className="discovery-panel-header">
-              <span>{activeData.label}</span>
-              <button
-                onClick={() => setActiveHotspot(null)}
-                className="text-[hsl(40,40%,95%)] hover:text-white text-lg leading-none"
-                data-testid="button-close-panel"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="discovery-panel-body">
-              <p className="text-sm text-[hsl(25,40%,20%)] leading-relaxed mb-4">
-                {activeData.description}
-              </p>
-
-              {/* Menu Board hotspot reveals the house menu */}
-              {activeData.showsMenu && (
-                <div className="space-y-2">
-                  <h3 className="pulp-title text-sm text-[hsl(0,72%,48%)] tracking-wider">House Specials</h3>
-                  <div className="grid grid-cols-2 gap-2">
-                    {houseMenu.map(item => (
-                      <div key={item.name} className="comic-panel p-3 bg-[hsl(38,35%,88%)]">
-                        <div className="flex justify-between items-start gap-1 mb-1">
-                          <span className="pulp-title text-xs text-[hsl(25,40%,15%)]">{item.name}</span>
-                        </div>
-                        <span className="text-xs font-bold text-[hsl(195,65%,38%)]">{item.price}</span>
-                        <p className="text-xs text-[hsl(25,20%,40%)] mt-1">{item.desc}</p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Counter hotspot reveals the dish creation form */}
-              {activeData.showsForm && (
-                <div className="space-y-3">
-                  <h3 className="pulp-title text-sm text-[hsl(0,72%,48%)] tracking-wider">Invent a Dish</h3>
-                  <p className="text-xs text-[hsl(25,15%,42%)]">Dream up a space-age creation for the community menu.</p>
-                  <input
-                    placeholder="Your name (Chef, Space Cook...)"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-[hsl(38,30%,85%)] text-[hsl(25,40%,15%)] border-2 border-[hsl(30,20%,68%)] rounded focus:border-[hsl(0,72%,48%)] focus:outline-none"
-                    data-testid="input-dish-chef"
-                  />
-                  <input
-                    placeholder="Dish name (e.g., Supernova Spaghetti)"
-                    value={dishName}
-                    onChange={(e) => setDishName(e.target.value)}
-                    className="w-full px-3 py-2 text-sm bg-[hsl(38,30%,85%)] text-[hsl(25,40%,15%)] border-2 border-[hsl(30,20%,68%)] rounded focus:border-[hsl(0,72%,48%)] focus:outline-none"
-                    data-testid="input-dish-name"
-                  />
-                  <textarea
-                    placeholder="Describe your creation..."
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={2}
-                    className="w-full px-3 py-2 text-sm bg-[hsl(38,30%,85%)] border-2 border-[hsl(30,20%,68%)] rounded focus:border-[hsl(0,72%,48%)] focus:outline-none resize-none"
-                    data-testid="input-dish-desc"
-                  />
-                  <button
-                    onClick={() => submitDish.mutate()}
-                    disabled={!name.trim() || !dishName.trim() || !description.trim() || submitDish.isPending}
-                    className="retro-btn text-sm"
-                    data-testid="button-submit-dish"
-                  >
-                    {submitDish.isPending ? "Adding..." : "★ Add to Menu"}
-                  </button>
-
-                  {showSuccess && (
-                    <div className="text-center py-2 animate-fade-in">
-                      <span className="pulp-title text-[hsl(45,80%,48%)] text-lg tracking-wider drop-shadow-sm">
-                        TRANSMISSION RECEIVED!
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Community dishes */}
-                  {communityItems.length > 0 && (
-                    <div className="mt-4 space-y-2">
-                      <h4 className="pulp-title text-xs text-[hsl(195,65%,38%)] tracking-wider">
-                        Community Menu ({communityItems.length})
-                      </h4>
-                      {communityItems.map(item => (
-                        <div key={item.id} className="comic-panel p-3 bg-[hsl(38,35%,88%)] flex items-start gap-3" data-testid={`card-menu-${item.id}`}>
-                          <button
-                            onClick={() => voteMutation.mutate(item.id)}
-                            disabled={voteMutation.isPending}
-                            className="flex flex-col items-center gap-0.5 shrink-0 mt-0.5 hover:scale-110 transition-transform"
-                            data-testid={`button-vote-dish-${item.id}`}
-                          >
-                            <span className="text-lg">👍</span>
-                            <span className="text-xs font-bold text-[hsl(25,40%,15%)]">{item.votes}</span>
-                          </button>
-                          <div>
-                            <span className="pulp-title text-xs text-[hsl(25,40%,15%)]">{item.dishName}</span>
-                            <p className="text-xs text-[hsl(25,20%,40%)] mt-0.5">{item.description}</p>
-                            <p className="text-xs text-[hsl(25,15%,55%)] mt-1">— Chef {item.visitorName}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Generic hotspot — no special content, just the description */}
-              {!activeData.showsMenu && !activeData.showsForm && (
-                <div className="flex gap-2 mt-2">
-                  <div className="starburst-badge" style={{ width: 44, height: 44, fontSize: "0.5rem" }}>
-                    FOUND!
-                  </div>
-                  <p className="text-xs text-[hsl(25,15%,50%)] italic">
-                    You discovered the {activeData.label}. Keep exploring — there's more to find.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    <WorldPage
+      title="Astro Diner"
+      world="Astro Diner"
+      sceneSrc="./scenes/diner-scene.png"
+      sceneAlt="Inside the Astro Diner — chrome counter, robot waiter, jukebox, observation window"
+      sceneTestId="scene-diner"
+      hint="★ Click the glowing spots to explore the diner ★"
+      hotspots={hotspots}
+      theme={{
+        headerBg: "hsl(350,30%,14%)",
+        headerBorder: "hsl(45,80%,45%)",
+      }}
+      renderPanelContent={renderPanelContent}
+    />
   );
 }
