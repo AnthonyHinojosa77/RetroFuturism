@@ -111,10 +111,23 @@ export default function WorldPage({
       {/* Scene illustration with hotspot overlays */}
       <div className="max-w-5xl mx-auto px-4 pt-4">
         <div className="scene-container relative" data-testid={sceneTestId}>
+          {/* Loading placeholder — matches the 3:2 scene aspect ratio so the
+              layout doesn't jump when the illustration finishes loading */}
+          {!imgLoaded && (
+            <div
+              className="w-full aspect-[3/2] flex flex-col items-center justify-center gap-3 bg-[hsl(220,25%,16%)] border-4 border-[hsl(30,20%,30%)] animate-pulse"
+              data-testid="scene-loading-placeholder"
+            >
+              <span className="text-3xl">📡</span>
+              <span className="marker-text text-sm text-[hsl(45,80%,55%)]">
+                Tuning the atomic receiver…
+              </span>
+            </div>
+          )}
           <img
             src={sceneSrc}
             alt={sceneAlt}
-            className="w-full h-auto block"
+            className={`w-full h-auto block transition-opacity duration-500 ${imgLoaded ? "opacity-100" : "opacity-0 absolute inset-0"}`}
             onLoad={() => setImgLoaded(true)}
             draggable={false}
           />
