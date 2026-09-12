@@ -1,13 +1,29 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
-import { storage } from "./storage";
+import { sql } from "drizzle-orm";
+import { storage, db } from "./storage";
 import { insertPostcardSchema, insertPredictionSchema, insertMenuItemSchema, insertVisitorSchema } from "@shared/schema";
-import { apiLimiter, writeLimiter } from "./middleware";
+import { apiLimiter, writeLimiter, corsMiddleware } from "./middleware";
 
 export async function registerRoutes(
   httpServer: Server,
   app: Express
 ): Promise<Server> {
+
+  // Liveness probe for containers/orchestrators — deliberately outside /api
+  // so it is not rate-limited. Reports DB reachability.
+  app.get("/health", (_req, res) => {
+    try {
+      db.get(sql`SELECT 1`);
+      res.json({ status: "ok", db: "up", uptime: Math.round(process.uptime()) });
+    } catch (err) {
+      console.error("Health check failed:", err);
+      res.status(503).json({ status: "degraded", db: "down" });
+    }
+  });
+
+  // Restrictive CORS on the JSON API only (not on static/client assets)
+  app.use("/api", corsMiddleware);
 
   // Apply general API rate limiting to all /api routes
   app.use("/api", apiLimiter);
@@ -39,8 +55,8 @@ export async function registerRoutes(
   });
 
   app.post("/api/predictions/:id/vote", writeLimiter, (req, res) => {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
+    const id = Number.parseInt(String(req.params.id), 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const visitorId = req.body.visitorId;
     if (!visitorId || typeof visitorId !== "string") {
       return res.status(400).json({ error: "visitorId required" });
@@ -64,8 +80,8 @@ export async function registerRoutes(
   });
 
   app.post("/api/menu-items/:id/vote", writeLimiter, (req, res) => {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
+    const id = Number.parseInt(String(req.params.id), 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const visitorId = req.body.visitorId;
     if (!visitorId || typeof visitorId !== "string") {
       return res.status(400).json({ error: "visitorId required" });

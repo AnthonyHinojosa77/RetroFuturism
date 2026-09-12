@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
 import { createServer } from "http";
+import { closeDb } from "./storage";
 
 const app = express();
 const httpServer = createServer(app);
@@ -95,10 +96,32 @@ app.use((req, res, next) => {
     {
       port,
       host: "0.0.0.0",
-      reusePort: true,
     },
     () => {
       log(`serving on port ${port}`);
     },
   );
+
+  // Graceful shutdown: stop accepting connections, then checkpoint the WAL
+  // into the main SQLite file and close the connection so no data lingers
+  // in data.db-wal when the process exits (important on ephemeral volumes).
+  let shuttingDown = false;
+  const shutdown = (signal: string) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    log(`received ${signal}, shutting down`);
+    httpServer.close(() => {
+      closeDb();
+      log("shutdown complete");
+      process.exit(0);
+    });
+    // Force-exit if connections don't drain in time
+    setTimeout(() => {
+      console.error("Forced shutdown after 10s — closing DB");
+      closeDb();
+      process.exit(1);
+    }, 10_000).unref();
+  };
+  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
 })();

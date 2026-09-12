@@ -41,8 +41,8 @@ Copy [`.env.example`](./.env.example) to `.env`. This app deliberately has only 
 | `NODE_ENV` | `development`   | `production` serves the prebuilt static client; otherwise Vite dev middleware is used |
 | `PORT`     | `5000`          | Port the Express server (API + client) binds on `0.0.0.0`   |
 
-The SQLite database path (`./data.db`) and the Drizzle config URL are currently
-hard-coded (`server/storage.ts`, `drizzle.config.ts`), not read from the environment.
+The SQLite database path defaults to `./data.db` and can be overridden with the
+`DATABASE_PATH` env var (`server/storage.ts` and `drizzle.config.ts` both read it).
 There is no auth/session/OAuth layer, so no secrets are required.
 
 ## Deployment
