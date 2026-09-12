@@ -39,8 +39,8 @@ export async function registerRoutes(
   });
 
   app.post("/api/predictions/:id/vote", writeLimiter, (req, res) => {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
+    const id = Number.parseInt(String(req.params.id), 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const visitorId = req.body.visitorId;
     if (!visitorId || typeof visitorId !== "string") {
       return res.status(400).json({ error: "visitorId required" });
@@ -64,8 +64,8 @@ export async function registerRoutes(
   });
 
   app.post("/api/menu-items/:id/vote", writeLimiter, (req, res) => {
-    const id = parseInt(req.params.id);
-    if (isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
+    const id = Number.parseInt(String(req.params.id), 10);
+    if (Number.isNaN(id)) return res.status(400).json({ error: "Invalid ID" });
     const visitorId = req.body.visitorId;
     if (!visitorId || typeof visitorId !== "string") {
       return res.status(400).json({ error: "visitorId required" });
